@@ -5,9 +5,12 @@ import { useSocket } from "@/lib/socket/SocketProvider";
 import { GameEvents } from "@/lib/socket/events";
 import type { JoinGameData, PlayerJoinedData } from "@/lib/socket/types";
 
-export function GameLobby() {
+interface GameLobbyProps {
+  playerName: string;
+}
+
+export function GameLobby({ playerName }: GameLobbyProps) {
   const { socket, isConnected } = useSocket();
-  const [playerName, setPlayerName] = useState("");
   const [roomId, setRoomId] = useState("");
   const [currentRoom, setCurrentRoom] = useState<string | null>(null);
   const [players, setPlayers] = useState<PlayerJoinedData[]>([]);
@@ -45,10 +48,10 @@ export function GameLobby() {
   }, [socket, currentRoom]);
 
   const handleJoinGame = () => {
-    if (!socket || !playerName.trim()) return;
+    if (!socket) return;
 
     const data: JoinGameData = {
-      playerName: playerName.trim(),
+      playerName: playerName,
       roomId: roomId.trim() || undefined,
     };
 
@@ -80,17 +83,9 @@ export function GameLobby() {
 
         {!currentRoom ? (
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Your Name
-              </label>
-              <input
-                type="text"
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter your name"
-              />
+            <div className="bg-blue-50 p-4 rounded-lg mb-4">
+              <p className="text-sm text-gray-600">Playing as:</p>
+              <p className="text-xl font-bold text-blue-600">{playerName}</p>
             </div>
 
             <div>
@@ -108,7 +103,7 @@ export function GameLobby() {
 
             <button
               onClick={handleJoinGame}
-              disabled={!isConnected || !playerName.trim()}
+              disabled={!isConnected}
               className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               Join Game

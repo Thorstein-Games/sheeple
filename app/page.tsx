@@ -1,9 +1,130 @@
-import { GameLobby } from "./components/GameLobby";
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const [playerName, setPlayerName] = useState("");
+  const router = useRouter();
+
+  const handleStartGame = () => {
+    if (!playerName.trim()) return;
+    // Store player name in sessionStorage for the lobby to use
+    sessionStorage.setItem("playerName", playerName.trim());
+    router.push("/lobby");
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-12">
-      <GameLobby />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Logo/Title */}
+        <div className="text-center mb-12">
+          <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-4">
+            🐑 Sheeple
+          </h1>
+          <p className="text-xl text-gray-600">
+            Think like the herd, win like a shepherd!
+          </p>
+        </div>
+
+        {/* Player Name Input Card */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <h2 className="text-2xl font-bold mb-6 text-center">
+            Ready to Play?
+          </h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700">
+                Enter Your Name
+              </label>
+              <input
+                type="text"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                onKeyPress={(e) => e.key === "Enter" && handleStartGame()}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                placeholder="Your name"
+                autoFocus
+              />
+            </div>
+            <button
+              onClick={handleStartGame}
+              disabled={!playerName.trim()}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100"
+            >
+              Join the Herd →
+            </button>
+          </div>
+        </div>
+
+        {/* Rules Section */}
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          <h2 className="text-2xl font-bold mb-6 text-center">How to Play</h2>
+          <div className="space-y-6">
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
+                1
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-1">Join a Room</h3>
+                <p className="text-gray-600">
+                  Create a new room or join an existing one with a room code.
+                  Share the code with your friends!
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold">
+                2
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-1">Answer Prompts</h3>
+                <p className="text-gray-600">
+                  Each round, you'll see a prompt. Your goal is to answer the
+                  same way as most other players!
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center text-pink-600 font-bold">
+                3
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-1">
+                  Think Like a Sheep
+                </h3>
+                <p className="text-gray-600">
+                  Score points when your answer matches other players. The most
+                  popular answer wins the round!
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-bold">
+                4
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-1">Win the Game</h3>
+                <p className="text-gray-600">
+                  The player with the most points after all rounds wins! Will
+                  you be the ultimate sheep?
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">
+              <span className="font-semibold">💡 Pro Tip:</span> Don't try to be
+              clever or unique—go with your first instinct and think about what
+              everyone else might say!
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
