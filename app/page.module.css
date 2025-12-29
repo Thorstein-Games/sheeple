@@ -1,0 +1,72 @@
+.sheepPopContainer {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.sheepPop {
+  position: absolute;
+  top: 100%;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.3) translateY(30px);
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  will-change: transform, opacity;
+}
+
+.sheepPop1 {
+  left: 10%;
+  transition-delay: 0s;
+}
+
+.sheepPop2 {
+  left: 30%;
+  transition-delay: 0.05s;
+}
+
+.sheepPop3 {
+  left: 50%;
+  transition-delay: 0.1s;
+}
+
+.sheepPop4 {
+  left: 70%;
+  transition-delay: 0.15s;
+}
+
+.sheepPop5 {
+  left: 90%;
+  transition-delay: 0.2s;
+}
+
+.joinHerdBtn:hover:not(:disabled) {
+  cursor: pointer;
+  font-size: 24px;
+  font-weight: bold;
+
+  .sheepPop {
+    opacity: 0.9;
+    transform: scale(1) translateY(0) rotate(var(--sheep-rot, 0deg));
+  }
+
+  .sheepPop1 {
+    transform: translate(-50%, -50%) scale(1) translateY(0) rotate(-10deg);
+  }
+
+  .sheepPop2 {
+    transform: translate(-50%, -50%) scale(1) translateY(0) rotate(8deg);
+  }
+
+  .sheepPop3 {
+    transform: translate(-50%, -50%) scale(1) translateY(0) rotate(-5deg);
+  }
+
+  .sheepPop4 {
+    transform: translate(-50%, -50%) scale(1) translateY(0) rotate(12deg);
+  }
+
+  .sheepPop5 {
+    transform: translate(-50%, -50%) scale(1) translateY(0) rotate(-12deg);
+  }
+}

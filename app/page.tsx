@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import styles from "./page.module.css";
 
 export default function Home() {
   const [playerName, setPlayerName] = useState("");
@@ -50,9 +51,24 @@ export default function Home() {
             <button
               onClick={handleStartGame}
               disabled={!playerName.trim()}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100"
+              className={`${styles.joinHerdBtn} relative overflow-hidden w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 hover:cursor disabled:hover:scale-100`}
+              style={{ minHeight: 56 }}
             >
-              Join the Herd →
+              <span className={styles.sheepPopContainer}>
+                {Array.from({ length: 5 }).map((_, idx) => (
+                  <img
+                    key={idx}
+                    src="/sheep.png"
+                    alt="sheep"
+                    className={`${styles.sheepPop} ${
+                      styles[`sheepPop${idx + 1}`]
+                    }`}
+                    width={256}
+                    height={256}
+                  />
+                ))}
+              </span>
+              <span className="relative z-10">Join the Herd →</span>
             </button>
           </div>
         </div>
