@@ -19,7 +19,10 @@ export function GameLobby({ playerName }: GameLobbyProps) {
     if (!socket) return;
 
     socket.on(GameEvents.PLAYER_JOINED, (data: PlayerJoinedData) => {
-      console.log("Player joined, redirecting to room:", data);
+      router.push(`/room/${data.roomId}`);
+    });
+
+    socket.on(GameEvents.ROOM_STATE, (data: { roomId: string }) => {
       router.push(`/room/${data.roomId}`);
     });
 
@@ -30,6 +33,7 @@ export function GameLobby({ playerName }: GameLobbyProps) {
 
     return () => {
       socket.off(GameEvents.PLAYER_JOINED);
+      socket.off(GameEvents.ROOM_STATE);
       socket.off(GameEvents.ERROR);
     };
   }, [socket, router]);
@@ -85,9 +89,9 @@ export function GameLobby({ playerName }: GameLobbyProps) {
           <button
             onClick={handleJoinGame}
             disabled={!isConnected}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold cursor-pointer hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            Join Game
+            {roomId ? `Join Game` : "Create Game"}
           </button>
         </div>
       </div>
