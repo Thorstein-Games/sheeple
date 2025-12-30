@@ -36,8 +36,11 @@ export default function Home() {
               className="h-64 w-auto"
             />
           </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Play Sheeple Online
+          </h1>
           <p className="text-xl text-gray-600">
-            Think like the herd, win like a shepherd!
+            Be a sheep with your friends! Try to think like the herd and win
           </p>
         </div>
 
