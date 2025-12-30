@@ -81,3 +81,14 @@ export interface RoomStateData {
   }>;
   roomId: string;
 }
+
+export interface RoomInfo {
+  roomId: string;
+  playerCount: number;
+  maxPlayers: number;
+  isGameStarted: boolean;
+}
+
+export interface RoomsListData {
+  rooms: RoomInfo[];
+}

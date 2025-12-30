@@ -4,6 +4,8 @@ export enum GameEvents {
   PLAYER_JOINED = "player_joined",
   PLAYER_LEFT = "player_left",
   ROOM_STATE = "room_state",
+  GET_ROOMS = "get_rooms",
+  ROOMS_LIST = "rooms_list",
 
   // Game state events
   PLAYER_READY = "player_ready",

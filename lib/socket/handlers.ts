@@ -11,6 +11,11 @@ export function setupSocketHandlers(io: SocketIOServer) {
   io.on("connection", (socket: Socket) => {
     console.log(`Client connected: ${socket.id}`);
 
+    // Handle getting all rooms
+    socket.on(GameEvents.GET_ROOMS, () => {
+      handleGetRooms(io, socket);
+    });
+
     // Handle player joining
     socket.on(
       GameEvents.JOIN_GAME,
@@ -41,6 +46,11 @@ export function getGameManager(): GameManager {
 }
 
 // Handler functions
+function handleGetRooms(io: SocketIOServer, socket: Socket) {
+  const rooms = gameManager.getAllRooms();
+  socket.emit(GameEvents.ROOMS_LIST, { rooms });
+}
+
 function handleJoinGame(
   io: SocketIOServer,
   socket: Socket,

@@ -1,5 +1,6 @@
 import { Server as SocketIOServer } from "socket.io";
 import { GameEvents } from "../socket/events";
+import { MAX_PLAYERS } from "../constants";
 
 export interface Player {
   playerId: string;
@@ -331,5 +332,14 @@ export class GameManager {
       totalRounds: room.totalRounds,
       players: Array.from(room.players.values()),
     };
+  }
+
+  getAllRooms() {
+    return Array.from(this.rooms.values()).map((room) => ({
+      roomId: room.roomId,
+      playerCount: room.players.size,
+      maxPlayers: MAX_PLAYERS,
+      isGameStarted: room.isGameStarted,
+    }));
   }
 }
