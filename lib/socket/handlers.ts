@@ -153,11 +153,8 @@ function handlePlayerReady(io: SocketIOServer, socket: Socket) {
     playerName: socket.data.playerName,
   });
 
-  console.log(`${socket.data.playerName} is ready`);
-
   // Check if all players are ready
   if (gameManager.areAllPlayersReady(room)) {
-    console.log(`All players ready in room ${room}. Starting game...`);
     gameManager.startGame(room);
   }
 }
@@ -187,8 +184,6 @@ function handleSubmitAnswer(
     playerId: socket.id,
     playerName: socket.data.playerName,
   });
-
-  console.log(`${socket.data.playerName} submitted an answer: ${data.answer}`);
 }
 
 function handleDisconnect(io: SocketIOServer, socket: Socket) {
