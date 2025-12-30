@@ -1,17 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSocket } from "@/lib/socket/SocketProvider";
 import styles from "./page.module.css";
 
 export default function Home() {
-  const [playerName, setPlayerName] = useState("");
+  const [playerNameInput, setPlayerNameInput] = useState("");
+  const { playerName, setPlayerName } = useSocket();
   const router = useRouter();
 
+  // Set the input to the default player name when it's available
+  useEffect(() => {
+    if (playerName && !playerNameInput) {
+      setPlayerNameInput(playerName);
+    }
+  }, [playerName, playerNameInput]);
+
   const handleStartGame = () => {
-    if (!playerName.trim()) return;
-    // Store player name in sessionStorage for the lobby to use
-    sessionStorage.setItem("playerName", playerName.trim());
+    if (!playerNameInput.trim()) return;
+    // Store player name in context (which syncs to sessionStorage)
+    setPlayerName(playerNameInput.trim());
     router.push("/lobby");
   };
 
@@ -40,8 +49,8 @@ export default function Home() {
               </label>
               <input
                 type="text"
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
+                value={playerNameInput}
+                onChange={(e) => setPlayerNameInput(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleStartGame()}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
                 placeholder="Your name"
@@ -50,7 +59,7 @@ export default function Home() {
             </div>
             <button
               onClick={handleStartGame}
-              disabled={!playerName.trim()}
+              disabled={!playerNameInput.trim()}
               className={`${styles.joinHerdBtn} relative overflow-hidden w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 hover:cursor disabled:hover:scale-100`}
               style={{ minHeight: 56 }}
             >

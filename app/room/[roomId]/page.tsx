@@ -16,10 +16,9 @@ import type {
 export default function RoomPage() {
   const params = useParams();
   const router = useRouter();
-  const { socket, isConnected } = useSocket();
+  const { socket, isConnected, playerName: contextPlayerName } = useSocket();
   const roomId = params.roomId as string;
 
-  const [playerName, setPlayerName] = useState<string | null>(null);
   const [players, setPlayers] = useState<PlayerJoinedData[]>([]);
   const [isReady, setIsReady] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
@@ -31,19 +30,16 @@ export default function RoomPage() {
   const [scores, setScores] = useState<UpdateScoresData | null>(null);
 
   useEffect(() => {
-    const name = sessionStorage.getItem("playerName");
-    if (!name) {
+    if (!contextPlayerName) {
       router.push("/");
-      return;
     }
-    setPlayerName(name);
-  }, [router]);
+  }, [contextPlayerName, router]);
 
   useEffect(() => {
-    if (!socket || !playerName) return;
+    if (!socket || !contextPlayerName) return;
 
     socket.emit(GameEvents.JOIN_GAME, {
-      playerName,
+      playerName: contextPlayerName,
       roomId,
     });
 
@@ -105,7 +101,7 @@ export default function RoomPage() {
       socket.off(GameEvents.UPDATE_SCORES);
       socket.off(GameEvents.ERROR);
     };
-  }, [socket, playerName, roomId]);
+  }, [socket, contextPlayerName, roomId]);
 
   const handlePlayerReady = () => {
     if (!socket) return;
@@ -121,11 +117,10 @@ export default function RoomPage() {
   };
 
   const handleLeaveRoom = () => {
-    sessionStorage.removeItem("playerName");
     router.push("/");
   };
 
-  if (!playerName) {
+  if (!contextPlayerName) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
@@ -139,41 +134,6 @@ export default function RoomPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-                🐑 Sheeple Game
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Room:{" "}
-                <span className="font-mono font-bold text-lg">{roomId}</span>
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-600">Playing as:</p>
-              <p className="font-bold text-blue-600">{playerName}</p>
-              <p className="text-sm mt-1">
-                <span
-                  className={`${
-                    isConnected ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
-                </span>
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={handleLeaveRoom}
-            className="text-red-600 hover:text-red-700 text-sm font-medium"
-          >
-            ← Leave Room
-          </button>
-        </div>
-
         {!gameStarted ? (
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <h2 className="text-2xl font-bold mb-6">Waiting for Players...</h2>

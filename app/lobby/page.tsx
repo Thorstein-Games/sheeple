@@ -1,23 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSocket } from "@/lib/socket/SocketProvider";
 import { GameLobby } from "../components/GameLobby";
 
 export default function LobbyPage() {
-  const [playerName, setPlayerName] = useState<string | null>(null);
+  const { playerName } = useSocket();
   const router = useRouter();
 
   useEffect(() => {
-    // Get player name from sessionStorage
-    const name = sessionStorage.getItem("playerName");
-    if (!name) {
-      // Redirect back to home if no player name
+    // Redirect back to home if no player name
+    if (!playerName) {
       router.push("/");
-      return;
     }
-    setPlayerName(name);
-  }, [router]);
+  }, [playerName, router]);
 
   if (!playerName) {
     return (
