@@ -3,6 +3,7 @@ import { parse } from "url";
 import next from "next";
 import { Server as SocketIOServer } from "socket.io";
 import { setupSocketHandlers } from "./lib/socket/handlers";
+import { setupDevMode } from "./lib/game/devMode";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
@@ -35,6 +36,11 @@ app.prepare().then(() => {
 
   // Setup socket event handlers
   setupSocketHandlers(io);
+
+  // Setup dev mode with fake players if in development
+  if (dev) {
+    setupDevMode(io);
+  }
 
   // Start server
   httpServer

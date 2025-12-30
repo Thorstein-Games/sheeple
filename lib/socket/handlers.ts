@@ -1,8 +1,13 @@
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { GameEvents } from "./events";
 import { MIN_PLAYERS, MAX_PLAYERS } from "../constants";
+import { GameManager } from "../game/GameManager";
+
+let gameManager: GameManager;
 
 export function setupSocketHandlers(io: SocketIOServer) {
+  gameManager = new GameManager(io);
+
   io.on("connection", (socket: Socket) => {
     console.log(`Client connected: ${socket.id}`);
 
@@ -31,6 +36,10 @@ export function setupSocketHandlers(io: SocketIOServer) {
   });
 }
 
+export function getGameManager(): GameManager {
+  return gameManager;
+}
+
 // Handler functions
 function handleJoinGame(
   io: SocketIOServer,
@@ -42,9 +51,27 @@ function handleJoinGame(
   // If roomId provided, join that room, otherwise create a new one
   const room = roomId || generateRoomId();
 
+  // Check if this socket is already in a room
+  if (socket.data.roomId === room) {
+    console.log(
+      `Player ${socket.id} already in room ${room}, sending room state`
+    );
+
+    // Send current room state with all players
+    const existingPlayers = gameManager.getPlayers(room);
+    socket.emit(GameEvents.ROOM_STATE, {
+      roomId: room,
+      players: existingPlayers.map((p) => ({
+        playerId: p.playerId,
+        playerName: p.playerName,
+        isReady: p.isReady,
+      })),
+    });
+    return;
+  }
+
   // Check if room is full
-  const roomSockets = io.sockets.adapter.rooms.get(room);
-  const currentPlayerCount = roomSockets ? roomSockets.size : 0;
+  const currentPlayerCount = gameManager.getPlayerCount(room);
 
   if (currentPlayerCount >= MAX_PLAYERS) {
     socket.emit(GameEvents.ERROR, {
@@ -57,11 +84,39 @@ function handleJoinGame(
   socket.data.playerName = playerName;
   socket.data.roomId = room;
 
-  // Notify room about new player
-  io.to(room).emit(GameEvents.PLAYER_JOINED, {
+  // Add player to game manager (returns false if already exists)
+  const added = gameManager.addPlayer(room, socket.id, playerName);
+
+  if (!added) {
+    console.log(
+      `Player ${socket.id} already exists in game manager, sending room state`
+    );
+
+    // Send current room state
+    const existingPlayers = gameManager.getPlayers(room);
+    socket.emit(GameEvents.ROOM_STATE, {
+      roomId: room,
+      players: existingPlayers.map((p) => ({
+        playerId: p.playerId,
+        playerName: p.playerName,
+        isReady: p.isReady,
+      })),
+    });
+    return;
+  }
+
+  // Notify OTHER players in room about new player
+  socket.to(room).emit(GameEvents.PLAYER_JOINED, {
     playerId: socket.id,
     playerName,
     roomId: room,
+  });
+
+  // Send full room state to the joining player
+  const allPlayers = gameManager.getPlayers(room);
+  socket.emit(GameEvents.ROOM_STATE, {
+    roomId: room,
+    players: allPlayers,
   });
 
   console.log(
@@ -80,8 +135,7 @@ function handlePlayerReady(io: SocketIOServer, socket: Socket) {
   }
 
   // Check if minimum players requirement is met
-  const roomSockets = io.sockets.adapter.rooms.get(room);
-  const currentPlayerCount = roomSockets ? roomSockets.size : 0;
+  const currentPlayerCount = gameManager.getPlayerCount(room);
 
   if (currentPlayerCount < MIN_PLAYERS) {
     socket.emit(GameEvents.ERROR, {
@@ -90,6 +144,9 @@ function handlePlayerReady(io: SocketIOServer, socket: Socket) {
     return;
   }
 
+  // Mark player as ready
+  gameManager.setPlayerReady(room, socket.id, true);
+
   // Broadcast ready status to room
   io.to(room).emit(GameEvents.PLAYER_READY_STATUS, {
     playerId: socket.id,
@@ -97,6 +154,14 @@ function handlePlayerReady(io: SocketIOServer, socket: Socket) {
   });
 
   console.log(`${socket.data.playerName} is ready`);
+
+  // Check if all players are ready
+  if (gameManager.areAllPlayersReady(room)) {
+    console.log(`All players ready in room ${room}. Starting game...`);
+    setTimeout(() => {
+      gameManager.startGame(room);
+    }, 1500);
+  }
 }
 
 function handleSubmitAnswer(
@@ -111,16 +176,21 @@ function handleSubmitAnswer(
     return;
   }
 
-  // Broadcast answer submission to room (without revealing the answer)
-  io.to(room).emit(GameEvents.ANSWER_SUBMITTED, {
+  // Submit answer to game manager
+  const success = gameManager.submitAnswer(room, socket.id, data.answer);
+
+  if (!success) {
+    socket.emit(GameEvents.ERROR, { message: "Failed to submit answer" });
+    return;
+  }
+
+  // Confirm submission to player
+  socket.emit(GameEvents.ANSWER_SUBMITTED, {
     playerId: socket.id,
     playerName: socket.data.playerName,
   });
 
-  // Store answer in socket data (you might want to use a proper game state manager)
-  socket.data.currentAnswer = data.answer;
-
-  console.log(`${socket.data.playerName} submitted an answer`);
+  console.log(`${socket.data.playerName} submitted an answer: ${data.answer}`);
 }
 
 function handleDisconnect(io: SocketIOServer, socket: Socket) {
@@ -128,6 +198,9 @@ function handleDisconnect(io: SocketIOServer, socket: Socket) {
   const playerName = socket.data.playerName;
 
   if (room) {
+    // Remove player from game manager
+    gameManager.removePlayer(room, socket.id);
+
     io.to(room).emit(GameEvents.PLAYER_LEFT, {
       playerId: socket.id,
       playerName,

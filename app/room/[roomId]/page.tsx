@@ -11,15 +11,22 @@ import type {
   RoundStartData,
   RevealAnswersData,
   UpdateScoresData,
+  GameEndData,
+  RoomStateData,
 } from "@/lib/socket/types";
 
 export default function RoomPage() {
   const params = useParams();
   const router = useRouter();
-  const { socket, isConnected, playerName: contextPlayerName } = useSocket();
+  const {
+    socket,
+    isConnected,
+    playerName: contextPlayerName,
+    players,
+    setPlayers,
+  } = useSocket();
   const roomId = params.roomId as string;
 
-  const [players, setPlayers] = useState<PlayerJoinedData[]>([]);
   const [isReady, setIsReady] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [currentRound, setCurrentRound] = useState<RoundStartData | null>(null);
@@ -28,6 +35,12 @@ export default function RoomPage() {
   const [revealedAnswers, setRevealedAnswers] =
     useState<RevealAnswersData | null>(null);
   const [scores, setScores] = useState<UpdateScoresData | null>(null);
+  const [gameEnded, setGameEnded] = useState(false);
+  const [gameEndData, setGameEndData] = useState<GameEndData | null>(null);
+  const [hasJoined, setHasJoined] = useState(false);
+  const [readyPlayers, setReadyPlayers] = useState<Set<string>>(new Set());
+
+  console.log("players", players);
 
   useEffect(() => {
     if (!contextPlayerName) {
@@ -36,28 +49,70 @@ export default function RoomPage() {
   }, [contextPlayerName, router]);
 
   useEffect(() => {
-    if (!socket || !contextPlayerName) return;
+    if (!socket || !contextPlayerName || hasJoined) return;
 
     socket.emit(GameEvents.JOIN_GAME, {
       playerName: contextPlayerName,
       roomId,
     });
+    setHasJoined(true);
 
-    socket.on(GameEvents.PLAYER_JOINED, (data: PlayerJoinedData) => {
-      console.log("Player joined:", data);
-      setPlayers((prev) => {
+    const handlePlayerJoined = (data: PlayerJoinedData) => {
+      // Room state will be the source of truth, so we can just add new players
+      setPlayers((currentPlayers) => {
         // Avoid duplicates
-        if (prev.some((p) => p.playerId === data.playerId)) {
-          return prev;
+        if (currentPlayers.some((p) => p.playerId === data.playerId)) {
+          return currentPlayers;
         }
-        return [...prev, data];
+        return [
+          ...currentPlayers,
+          {
+            playerId: data.playerId,
+            playerName: data.playerName,
+            isReady: false,
+          },
+        ];
       });
-    });
+    };
 
-    socket.on(GameEvents.PLAYER_LEFT, (data: { playerId: string }) => {
+    const handleRoomState = (data: RoomStateData) => {
+      setPlayers(
+        data.players.map((p) => ({
+          playerId: p.playerId,
+          playerName: p.playerName,
+          isReady: p.isReady,
+        }))
+      );
+
+      const readyPlayerIds = data.players
+        .filter((p) => p.isReady)
+        .map((p) => p.playerId);
+      setReadyPlayers(new Set(readyPlayerIds));
+    };
+
+    const handlePlayerReadyStatus = (data: {
+      playerId: string;
+      playerName: string;
+    }) => {
+      setReadyPlayers((prev) => new Set(prev).add(data.playerId));
+    };
+
+    const handlePlayerLeft = (data: { playerId: string }) => {
       console.log("Player left:", data);
-      setPlayers((prev) => prev.filter((p) => p.playerId !== data.playerId));
-    });
+      setPlayers((currentPlayers) =>
+        currentPlayers.filter((p) => p.playerId !== data.playerId)
+      );
+      setReadyPlayers((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(data.playerId);
+        return newSet;
+      });
+    };
+
+    socket.on(GameEvents.PLAYER_JOINED, handlePlayerJoined);
+    socket.on(GameEvents.ROOM_STATE, handleRoomState);
+    socket.on(GameEvents.PLAYER_READY_STATUS, handlePlayerReadyStatus);
+    socket.on(GameEvents.PLAYER_LEFT, handlePlayerLeft);
 
     socket.on(GameEvents.GAME_START, (data: GameStartData) => {
       console.log("Game starting:", data);
@@ -86,6 +141,12 @@ export default function RoomPage() {
       setScores(data);
     });
 
+    socket.on(GameEvents.GAME_END, (data: GameEndData) => {
+      console.log("Game ended:", data);
+      setGameEnded(true);
+      setGameEndData(data);
+    });
+
     socket.on(GameEvents.ERROR, (data: { message: string }) => {
       console.error("Socket error:", data.message);
       alert(`Error: ${data.message}`);
@@ -93,20 +154,23 @@ export default function RoomPage() {
 
     return () => {
       socket.off(GameEvents.PLAYER_JOINED);
+      socket.off(GameEvents.ROOM_STATE);
       socket.off(GameEvents.PLAYER_LEFT);
       socket.off(GameEvents.GAME_START);
       socket.off(GameEvents.ROUND_START);
       socket.off(GameEvents.ANSWER_SUBMITTED);
       socket.off(GameEvents.REVEAL_ANSWERS);
       socket.off(GameEvents.UPDATE_SCORES);
+      socket.off(GameEvents.GAME_END);
       socket.off(GameEvents.ERROR);
     };
-  }, [socket, contextPlayerName, roomId]);
+  }, [socket, contextPlayerName, roomId, hasJoined]);
 
   const handlePlayerReady = () => {
-    if (!socket) return;
+    if (!socket || !socket.id) return;
     socket.emit(GameEvents.PLAYER_READY);
     setIsReady(true);
+    setReadyPlayers((prev) => new Set(prev).add(socket.id!));
   };
 
   const handleSubmitAnswer = () => {
@@ -114,10 +178,6 @@ export default function RoomPage() {
     socket.emit(GameEvents.SUBMIT_ANSWER, {
       answer: playerAnswer.trim(),
     });
-  };
-
-  const handleLeaveRoom = () => {
-    router.push("/");
   };
 
   if (!contextPlayerName) {
@@ -134,7 +194,63 @@ export default function RoomPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
-        {!gameStarted ? (
+        {gameEnded && gameEndData ? (
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold mb-4">🎉 Game Over! 🎉</h1>
+              <div className="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl p-6 mb-6">
+                <h2 className="text-3xl font-bold text-white mb-2">
+                  Winner: {gameEndData.winner.playerName}
+                </h2>
+                <p className="text-2xl text-white font-semibold">
+                  {gameEndData.winner.score} points
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3 mb-8">
+              <h3 className="text-xl font-semibold mb-4">Final Scores</h3>
+              {gameEndData.players.map((player, index) => (
+                <div
+                  key={player.playerId}
+                  className={`flex justify-between items-center p-4 rounded-lg ${
+                    index === 0
+                      ? "bg-gradient-to-r from-yellow-100 to-yellow-200 border-2 border-yellow-400"
+                      : index === 1
+                      ? "bg-gradient-to-r from-gray-100 to-gray-200 border-2 border-gray-400"
+                      : index === 2
+                      ? "bg-gradient-to-r from-orange-100 to-orange-200 border-2 border-orange-400"
+                      : "bg-gray-50 border-2 border-gray-200"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl font-bold text-gray-600">
+                      #{index + 1}
+                    </span>
+                    <span className="font-semibold text-lg">
+                      {player.playerName}
+                      {player.playerId === socket?.id && (
+                        <span className="ml-2 text-sm bg-blue-600 text-white px-2 py-1 rounded">
+                          You
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  <span className="text-2xl font-bold text-gray-900">
+                    {player.score} pts
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => router.push("/")}
+              className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors"
+            >
+              Back to Lobby
+            </button>
+          </div>
+        ) : !gameStarted ? (
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <h2 className="text-2xl font-bold mb-6">Waiting for Players...</h2>
 
@@ -161,10 +277,19 @@ export default function RoomPage() {
                 {players.map((player) => (
                   <div
                     key={player.playerId}
-                    className="bg-gray-50 border-2 border-gray-200 rounded-lg p-4 flex justify-between items-center"
+                    className={`border-2 rounded-lg p-4 flex justify-between items-center ${
+                      readyPlayers.has(player.playerId)
+                        ? "bg-green-50 border-green-400"
+                        : "bg-gray-50 border-gray-200"
+                    }`}
                   >
                     <span className="font-medium">{player.playerName}</span>
                     <div className="flex items-center gap-2">
+                      {readyPlayers.has(player.playerId) && (
+                        <span className="text-sm bg-green-600 text-white px-2 py-1 rounded">
+                          ✓ Ready
+                        </span>
+                      )}
                       {player.playerId === socket?.id && (
                         <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded">
                           You
@@ -200,7 +325,7 @@ export default function RoomPage() {
                   disabled={!isConnected || players.length < MIN_PLAYERS}
                   className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
-                  I'm Ready! 🎮
+                  Ready
                 </button>
               ) : (
                 <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4 text-center">
@@ -278,18 +403,45 @@ export default function RoomPage() {
               <div className="bg-white rounded-2xl shadow-xl p-8">
                 <h2 className="text-2xl font-bold mb-6">Round Results</h2>
 
-                <div className="space-y-4">
+                <div className="space-y-4 mb-6">
                   {revealedAnswers.answers.map((answer) => (
                     <div
                       key={answer.playerId}
-                      className="bg-gray-50 border-2 border-gray-200 rounded-lg p-4"
+                      className={`border-2 rounded-lg p-4 ${
+                        answer.points > 0
+                          ? "bg-green-50 border-green-400"
+                          : "bg-gray-50 border-gray-200"
+                      }`}
                     >
                       <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-semibold text-gray-900">
+                        <div className="flex-1">
+                          <p className="font-semibold text-gray-900 flex items-center gap-2">
                             {answer.playerName}
+                            {answer.playerId === socket?.id && (
+                              <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                You
+                              </span>
+                            )}
                           </p>
-                          <p className="text-lg mt-1">{answer.answer}</p>
+                          <p className="text-2xl mt-2 font-medium">
+                            {answer.answer}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          {answer.count > 1 && (
+                            <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold mb-1">
+                              {answer.count} players matched!
+                            </div>
+                          )}
+                          <div
+                            className={`text-2xl font-bold ${
+                              answer.points > 0
+                                ? "text-green-600"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            +{answer.points} pts
+                          </div>
                         </div>
                       </div>
                     </div>

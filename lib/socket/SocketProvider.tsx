@@ -4,11 +4,21 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { generateRandomPlayerName } from "@/lib/utils";
 
+export interface Player {
+  playerId: string;
+  playerName: string;
+  isReady: boolean;
+}
+
+type SetPlayersAction = Player[] | ((prevPlayers: Player[]) => Player[]);
+
 interface SocketContextType {
   socket: Socket | null;
   isConnected: boolean;
   playerName: string | null;
   setPlayerName: (name: string | null) => void;
+  players: Player[];
+  setPlayers: (action: SetPlayersAction) => void;
 }
 
 const SocketContext = createContext<SocketContextType>({
@@ -16,12 +26,24 @@ const SocketContext = createContext<SocketContextType>({
   isConnected: false,
   playerName: null,
   setPlayerName: () => {},
+  players: [],
+  setPlayers: () => {},
 });
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [playerName, setPlayerNameState] = useState<string | null>(null);
+  const [players, setPlayersState] = useState<Player[]>([]);
+
+  // Wrapper to match our type signature
+  const setPlayers = (action: SetPlayersAction) => {
+    if (typeof action === "function") {
+      setPlayersState(action);
+    } else {
+      setPlayersState(action);
+    }
+  };
 
   // Initialize player name from sessionStorage on mount, or generate a random one
   useEffect(() => {
@@ -70,7 +92,14 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <SocketContext.Provider
-      value={{ socket, isConnected, playerName, setPlayerName }}
+      value={{
+        socket,
+        isConnected,
+        playerName,
+        setPlayerName,
+        players,
+        setPlayers,
+      }}
     >
       {children}
     </SocketContext.Provider>

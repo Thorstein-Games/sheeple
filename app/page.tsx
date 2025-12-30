@@ -79,6 +79,26 @@ export default function Home() {
               </span>
               <span className="relative z-10">Join the Herd →</span>
             </button>
+
+            {/* Dev Mode Link */}
+            {process.env.NODE_ENV === "development" && (
+              <div className="pt-4 border-t-2 border-gray-200">
+                <p className="text-sm text-gray-600 mb-2 text-center">
+                  🧪 Dev Mode
+                </p>
+                <button
+                  onClick={() => {
+                    if (!playerNameInput.trim()) return;
+                    setPlayerName(playerNameInput.trim());
+                    router.push("/room/DEV001");
+                  }}
+                  disabled={!playerNameInput.trim()}
+                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-red-600 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  Join Test Room (5 Bots)
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

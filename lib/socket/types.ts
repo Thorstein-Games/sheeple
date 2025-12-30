@@ -50,9 +50,34 @@ export interface RevealAnswersData {
     playerId: string;
     playerName: string;
     answer: string;
+    count: number;
+    points: number;
   }>;
 }
 
 export interface UpdateScoresData {
   scores: Record<string, number>;
+}
+
+export interface GameEndData {
+  scores: Record<string, number>;
+  players: Array<{
+    playerId: string;
+    playerName: string;
+    score: number;
+  }>;
+  winner: {
+    playerId: string;
+    playerName: string;
+    score: number;
+  };
+}
+
+export interface RoomStateData {
+  players: Array<{
+    playerId: string;
+    playerName: string;
+    isReady: boolean;
+  }>;
+  roomId: string;
 }

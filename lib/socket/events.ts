@@ -3,6 +3,7 @@ export enum GameEvents {
   JOIN_GAME = "join_game",
   PLAYER_JOINED = "player_joined",
   PLAYER_LEFT = "player_left",
+  ROOM_STATE = "room_state",
 
   // Game state events
   PLAYER_READY = "player_ready",
