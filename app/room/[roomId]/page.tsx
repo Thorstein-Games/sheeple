@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useSocket } from "@/lib/socket/SocketProvider";
 import { GameEvents } from "@/lib/socket/events";
+import { MIN_PLAYERS, MAX_PLAYERS } from "@/lib/constants";
 import type {
   PlayerJoinedData,
   GameStartData,
@@ -178,9 +179,24 @@ export default function RoomPage() {
             <h2 className="text-2xl font-bold mb-6">Waiting for Players...</h2>
 
             <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-3">
-                Players in Room ({players.length})
-              </h3>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-semibold">
+                  Players in Room ({players.length}/{MAX_PLAYERS})
+                </h3>
+                <div className="text-sm">
+                  {players.length < MIN_PLAYERS ? (
+                    <span className="text-orange-600 font-medium">
+                      Need {MIN_PLAYERS - players.length} more to start
+                    </span>
+                  ) : players.length >= MAX_PLAYERS ? (
+                    <span className="text-red-600 font-medium">Room Full</span>
+                  ) : (
+                    <span className="text-green-600 font-medium">
+                      Ready to start!
+                    </span>
+                  )}
+                </div>
+              </div>
               <div className="grid gap-3">
                 {players.map((player) => (
                   <div
@@ -205,11 +221,23 @@ export default function RoomPage() {
               </div>
             </div>
 
+            {players.length < MIN_PLAYERS && (
+              <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <span className="font-semibold">🎮 Game Requirements:</span>{" "}
+                  You need at least {MIN_PLAYERS} players to start the game.
+                  Share the room code{" "}
+                  <span className="font-mono font-bold">{roomId}</span> with
+                  your friends!
+                </p>
+              </div>
+            )}
+
             <div className="border-t pt-6">
               {!isReady ? (
                 <button
                   onClick={handlePlayerReady}
-                  disabled={!isConnected}
+                  disabled={!isConnected || players.length < MIN_PLAYERS}
                   className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
                   I'm Ready! 🎮
@@ -223,6 +251,11 @@ export default function RoomPage() {
                     Waiting for other players...
                   </p>
                 </div>
+              )}
+              {!isReady && players.length < MIN_PLAYERS && (
+                <p className="text-sm text-gray-600 text-center mt-2">
+                  Ready button will be enabled once {MIN_PLAYERS} players join
+                </p>
               )}
             </div>
           </div>

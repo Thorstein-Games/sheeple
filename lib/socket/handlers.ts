@@ -1,5 +1,6 @@
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { GameEvents } from "./events";
+import { MIN_PLAYERS, MAX_PLAYERS } from "../constants";
 
 export function setupSocketHandlers(io: SocketIOServer) {
   io.on("connection", (socket: Socket) => {
@@ -41,6 +42,17 @@ function handleJoinGame(
   // If roomId provided, join that room, otherwise create a new one
   const room = roomId || generateRoomId();
 
+  // Check if room is full
+  const roomSockets = io.sockets.adapter.rooms.get(room);
+  const currentPlayerCount = roomSockets ? roomSockets.size : 0;
+
+  if (currentPlayerCount >= MAX_PLAYERS) {
+    socket.emit(GameEvents.ERROR, {
+      message: `Room is full! Maximum ${MAX_PLAYERS} players allowed.`,
+    });
+    return;
+  }
+
   socket.join(room);
   socket.data.playerName = playerName;
   socket.data.roomId = room;
@@ -52,7 +64,11 @@ function handleJoinGame(
     roomId: room,
   });
 
-  console.log(`${playerName} joined room ${room}`);
+  console.log(
+    `${playerName} joined room ${room} (${
+      currentPlayerCount + 1
+    }/${MAX_PLAYERS} players)`
+  );
 }
 
 function handlePlayerReady(io: SocketIOServer, socket: Socket) {
@@ -60,6 +76,17 @@ function handlePlayerReady(io: SocketIOServer, socket: Socket) {
 
   if (!room) {
     socket.emit(GameEvents.ERROR, { message: "Not in a room" });
+    return;
+  }
+
+  // Check if minimum players requirement is met
+  const roomSockets = io.sockets.adapter.rooms.get(room);
+  const currentPlayerCount = roomSockets ? roomSockets.size : 0;
+
+  if (currentPlayerCount < MIN_PLAYERS) {
+    socket.emit(GameEvents.ERROR, {
+      message: `Need at least ${MIN_PLAYERS} players to start the game. Currently: ${currentPlayerCount}`,
+    });
     return;
   }
 
