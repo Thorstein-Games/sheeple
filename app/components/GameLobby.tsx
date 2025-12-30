@@ -52,27 +52,12 @@ export function GameLobby({ playerName }: GameLobbyProps) {
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <div className="bg-white rounded-lg shadow p-6">
-        <h1 className="text-2xl font-bold mb-4">Sheeple Game Lobby</h1>
-
-        <div className="mb-4">
-          <p className="text-sm">
-            Connection Status:
-            <span
-              className={`ml-2 font-semibold ${
-                isConnected ? "text-green-600" : "text-red-600"
-              }`}
-            >
-              {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
-            </span>
-          </p>
+        <div className="flex justify-between items-center mb-16">
+          <h1 className="text-2xl font-bold">Sheeple Game Lobby</h1>
+          <p className="text-xl font-bold text-blue-600">{playerName}</p>
         </div>
 
         <div className="space-y-4">
-          <div className="bg-blue-50 p-4 rounded-lg mb-4">
-            <p className="text-sm text-gray-600">Playing as:</p>
-            <p className="text-xl font-bold text-blue-600">{playerName}</p>
-          </div>
-
           <div>
             <label className="block text-sm font-medium mb-2">
               Room ID (optional)
