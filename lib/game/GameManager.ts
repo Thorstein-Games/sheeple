@@ -122,8 +122,7 @@ export class GameManager {
 
   areAllPlayersReady(roomId: string): boolean {
     const room = this.getRoom(roomId);
-    console.log("roomId", roomId);
-    console.log("room", room);
+
     if (!room) return false;
 
     return Array.from(room.players.values()).every((player) => player.isReady);
@@ -149,7 +148,7 @@ export class GameManager {
     // Start first round after a short delay
     setTimeout(() => {
       this.startRound(roomId);
-    }, 2000);
+    }, 1000);
   }
 
   startRound(roomId: string): void {

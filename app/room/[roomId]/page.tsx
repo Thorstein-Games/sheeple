@@ -40,8 +40,6 @@ export default function RoomPage() {
   const [hasJoined, setHasJoined] = useState(false);
   const [readyPlayers, setReadyPlayers] = useState<Set<string>>(new Set());
 
-  console.log("players", players);
-
   useEffect(() => {
     if (!contextPlayerName) {
       router.push("/");
@@ -56,6 +54,10 @@ export default function RoomPage() {
       roomId,
     });
     setHasJoined(true);
+  }, [socket, contextPlayerName, roomId, hasJoined]);
+
+  useEffect(() => {
+    if (!socket) return;
 
     const handlePlayerJoined = (data: PlayerJoinedData) => {
       // Room state will be the source of truth, so we can just add new players
@@ -163,8 +165,9 @@ export default function RoomPage() {
       socket.off(GameEvents.UPDATE_SCORES);
       socket.off(GameEvents.GAME_END);
       socket.off(GameEvents.ERROR);
+      socket.off(GameEvents.PLAYER_READY_STATUS);
     };
-  }, [socket, contextPlayerName, roomId, hasJoined]);
+  }, [socket]);
 
   const handlePlayerReady = () => {
     if (!socket || !socket.id) return;

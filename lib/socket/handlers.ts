@@ -158,9 +158,7 @@ function handlePlayerReady(io: SocketIOServer, socket: Socket) {
   // Check if all players are ready
   if (gameManager.areAllPlayersReady(room)) {
     console.log(`All players ready in room ${room}. Starting game...`);
-    setTimeout(() => {
-      gameManager.startGame(room);
-    }, 1500);
+    gameManager.startGame(room);
   }
 }
 
