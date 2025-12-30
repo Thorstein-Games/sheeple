@@ -54,9 +54,9 @@ function handleGetRooms(io: SocketIOServer, socket: Socket) {
 function handleJoinGame(
   io: SocketIOServer,
   socket: Socket,
-  data: { playerName: string; roomId?: string }
+  data: { playerName: string; roomId?: string; isPrivate?: boolean }
 ) {
-  const { playerName, roomId } = data;
+  const { playerName, roomId, isPrivate = false } = data;
 
   // If roomId provided, join that room, otherwise create a new one
   const room = roomId || generateRoomId();
@@ -95,7 +95,7 @@ function handleJoinGame(
   socket.data.roomId = room;
 
   // Add player to game manager (returns false if already exists)
-  const added = gameManager.addPlayer(room, socket.id, playerName);
+  const added = gameManager.addPlayer(room, socket.id, playerName, isPrivate);
 
   if (!added) {
     console.log(

@@ -3,6 +3,7 @@
 export interface JoinGameData {
   playerName: string;
   roomId?: string;
+  isPrivate?: boolean;
 }
 
 export interface PlayerJoinedData {
@@ -87,6 +88,7 @@ export interface RoomInfo {
   playerCount: number;
   maxPlayers: number;
   isGameStarted: boolean;
+  isPrivate: boolean;
 }
 
 export interface RoomsListData {

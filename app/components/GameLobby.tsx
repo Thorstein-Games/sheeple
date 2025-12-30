@@ -19,6 +19,7 @@ export function GameLobby({ playerName }: GameLobbyProps) {
   const router = useRouter();
   const { socket, isConnected } = useSocket();
   const [roomId, setRoomId] = useState("");
+  const [isPrivate, setIsPrivate] = useState(false);
   const [rooms, setRooms] = useState<RoomInfo[]>([]);
 
   useEffect(() => {
@@ -62,12 +63,13 @@ export function GameLobby({ playerName }: GameLobbyProps) {
     };
   }, [socket, router, isConnected]);
 
-  const handleJoinGame = (targetRoomId?: string) => {
+  const handleJoinGame = (targetRoomId?: string, forcePublic?: boolean) => {
     if (!socket) return;
 
     const data: JoinGameData = {
       playerName: playerName,
       roomId: targetRoomId || roomId.trim() || undefined,
+      isPrivate: forcePublic ? false : targetRoomId ? false : isPrivate,
     };
 
     socket.emit(GameEvents.JOIN_GAME, data);
@@ -98,19 +100,41 @@ export function GameLobby({ playerName }: GameLobbyProps) {
               />
             </div>
 
+            {!roomId && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="privateRoom"
+                  checked={isPrivate}
+                  onChange={(e) => setIsPrivate(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label
+                  htmlFor="privateRoom"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Make this a private room (requires room ID to join)
+                </label>
+              </div>
+            )}
+
             <button
               onClick={() => handleJoinGame()}
               disabled={!isConnected}
               className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold cursor-pointer hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {roomId ? `Join Room ${roomId}` : "Create New Room"}
+              {roomId
+                ? `Join Room ${roomId}`
+                : isPrivate
+                ? "Create Private Room"
+                : "Create Public Room"}
             </button>
           </div>
         </div>
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Available Rooms</h2>
+        <h2 className="text-xl font-semibold mb-4">Active Rooms</h2>
         {rooms.length === 0 ? (
           <p className="text-gray-500 text-center py-8">
             No active rooms. Create one! 🙂
@@ -120,11 +144,20 @@ export function GameLobby({ playerName }: GameLobbyProps) {
             {rooms.map((room) => (
               <div
                 key={room.roomId}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                className={`flex items-center justify-between p-4 border rounded-lg ${
+                  room.isPrivate ? "bg-gray-50" : "hover:bg-gray-50"
+                }`}
               >
                 <div className="flex items-center gap-4">
                   <div>
-                    <p className="font-semibold text-lg">Room {room.roomId}</p>
+                    <p className="font-semibold text-lg">
+                      Room {room.roomId}
+                      {room.isPrivate && (
+                        <span className="ml-2 text-xs font-medium text-gray-500 bg-gray-200 px-2 py-1 rounded">
+                          🔒 Private
+                        </span>
+                      )}
+                    </p>
                     <p className="text-sm text-gray-600">
                       {room.playerCount} / {room.maxPlayers} players
                       {room.isGameStarted && (
@@ -140,11 +173,14 @@ export function GameLobby({ playerName }: GameLobbyProps) {
                   disabled={
                     !isConnected ||
                     room.playerCount >= room.maxPlayers ||
-                    room.isGameStarted
+                    room.isGameStarted ||
+                    room.isPrivate
                   }
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold cursor-pointer hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
-                  {room.isGameStarted
+                  {room.isPrivate
+                    ? "Private"
+                    : room.isGameStarted
                     ? "In Progress"
                     : room.playerCount >= room.maxPlayers
                     ? "Full"

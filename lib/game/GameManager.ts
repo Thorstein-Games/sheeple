@@ -14,6 +14,7 @@ export interface GameRoom {
   roomId: string;
   players: Map<string, Player>;
   isGameStarted: boolean;
+  isPrivate: boolean;
   currentRound: number;
   currentPrompt: string;
   answers: Map<string, string>;
@@ -53,11 +54,12 @@ export class GameManager {
     this.io = io;
   }
 
-  createRoom(roomId: string): GameRoom {
+  createRoom(roomId: string, isPrivate: boolean = false): GameRoom {
     const room: GameRoom = {
       roomId,
       players: new Map(),
       isGameStarted: false,
+      isPrivate,
       currentRound: 0,
       currentPrompt: "",
       answers: new Map(),
@@ -72,10 +74,15 @@ export class GameManager {
     return this.rooms.get(roomId);
   }
 
-  addPlayer(roomId: string, playerId: string, playerName: string): boolean {
+  addPlayer(
+    roomId: string,
+    playerId: string,
+    playerName: string,
+    isPrivate: boolean = false
+  ): boolean {
     let room = this.getRoom(roomId);
     if (!room) {
-      room = this.createRoom(roomId);
+      room = this.createRoom(roomId, isPrivate);
     }
 
     // Check if player already exists
@@ -340,6 +347,7 @@ export class GameManager {
       playerCount: room.players.size,
       maxPlayers: MAX_PLAYERS,
       isGameStarted: room.isGameStarted,
+      isPrivate: room.isPrivate,
     }));
   }
 }

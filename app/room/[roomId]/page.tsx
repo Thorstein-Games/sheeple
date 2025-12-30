@@ -326,7 +326,7 @@ export default function RoomPage() {
                 <button
                   onClick={handlePlayerReady}
                   disabled={!isConnected || players.length < MIN_PLAYERS}
-                  className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                  className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg cursor-pointer hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
                   Ready
                 </button>
@@ -394,6 +394,7 @@ export default function RoomPage() {
                     <p className="text-blue-700 font-semibold text-lg">
                       ✓ Answer Submitted!
                     </p>
+                    <p className="text-blue-600 mt-2 italic">{playerAnswer}</p>
                     <p className="text-blue-600 mt-2">
                       Waiting for other players...
                     </p>
