@@ -29,9 +29,13 @@ export default function Home() {
       <div className="max-w-4xl mx-auto">
         {/* Logo/Title */}
         <div className="text-center mb-12">
-          <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-4">
-            🐑 Sheeple
-          </h1>
+          <div className="flex justify-center mb-6">
+            <img
+              src="/full_logo.png"
+              alt="Sheeple Logo"
+              className="h-64 w-auto"
+            />
+          </div>
           <p className="text-xl text-gray-600">
             Think like the herd, win like a shepherd!
           </p>
