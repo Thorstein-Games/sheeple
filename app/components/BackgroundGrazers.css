@@ -1,0 +1,12 @@
+.background-grazers {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.grazer {
+  position: absolute;
+  width: 120px;
+  height: auto;
+}

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSocket } from "@/lib/socket/SocketProvider";
 import { GameLobby } from "../components/GameLobby";
+import { BackgroundGrazers } from "../components/BackgroundGrazers";
 
 export default function LobbyPage() {
   const { playerName } = useSocket();
@@ -28,8 +29,11 @@ export default function LobbyPage() {
   }
 
   return (
-    <div className="min-h-screen py-12">
-      <GameLobby playerName={playerName} />
+    <div className="relative min-h-screen py-12">
+      <BackgroundGrazers />
+      <div className="relative z-10">
+        <GameLobby playerName={playerName} />
+      </div>
     </div>
   );
 }
