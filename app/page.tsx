@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useSocket } from "@/lib/socket/SocketProvider";
 import styles from "./page.module.css";
 
@@ -174,6 +175,15 @@ export default function Home() {
               clever or unique—go with your first instinct and think about what
               everyone else might say!
             </p>
+          </div>
+
+          <div className="mt-6 text-center">
+            <Link
+              href="/how-to-play"
+              className="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold transition-colors"
+            >
+              Read Complete Rules & Strategy Guide →
+            </Link>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, usePathname, useParams } from "next/navigation";
+import Link from "next/link";
 import { useSocket } from "@/lib/socket/SocketProvider";
 
 export function Navbar() {
@@ -11,19 +12,20 @@ export function Navbar() {
 
   const getPageName = () => {
     if (pathname === "/") return "Home";
+    if (pathname === "/how-to-play") return "How to Play";
     if (pathname.includes("/lobby")) return "Lobby";
     if (pathname.includes("/room")) return `Room: ${params.roomId}`;
     return "Sheeple";
   };
 
   const handleLeaveRoom = () => {
-    if (pathname === "/" || pathname === "/lobby") {
+    if (pathname.startsWith("/room/")) {
+      // Leave room and go to lobby
+      router.push("/lobby");
+    } else {
       // Clear player data and go home
       setPlayerName(null);
       router.push("/");
-    } else if (pathname.startsWith("/room/")) {
-      // Leave room and go to lobby
-      router.push("/lobby");
     }
   };
 
@@ -49,7 +51,13 @@ export function Navbar() {
 
           {/* Center - Logo */}
           <div className="flex items-center justify-center absolute left-1/2 transform -translate-x-1/2">
-            <img src="/sheeple.png" alt="Sheeple" className="h-10 w-auto" />
+            <Link href="/" aria-label="Home">
+              <img
+                src="/sheeple.png"
+                alt="Sheeple"
+                className="h-10 w-auto cursor-pointer hover:opacity-80 transition-opacity"
+              />
+            </Link>
           </div>
 
           {/* Right side - Player name with connection status */}

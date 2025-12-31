@@ -1,0 +1,74 @@
+@keyframes rainbow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes wobble {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-2deg) scale(1.05);
+  }
+  75% {
+    transform: rotate(2deg) scale(1.05);
+  }
+}
+
+.more-games-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.more-games-button:hover {
+  background: linear-gradient(
+    90deg,
+    #ff0000,
+    #ff7f00,
+    #ffff00,
+    #00ff00,
+    #0000ff,
+    #4b0082,
+    #9400d3,
+    #ff0000
+  );
+  background-size: 200% 200%;
+  animation: rainbow 2s linear infinite, wobble 0.5s ease-in-out;
+  box-shadow: 0 0 20px rgba(255, 0, 255, 0.5), 0 0 40px rgba(0, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.more-games-button:hover::before {
+  content: "✨";
+  position: absolute;
+  left: 10px;
+  animation: sparkle 0.6s ease-in-out infinite;
+}
+
+.more-games-button:hover::after {
+  content: "✨";
+  position: absolute;
+  right: 10px;
+  animation: sparkle 0.6s ease-in-out infinite 0.3s;
+}
+
+@keyframes sparkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
