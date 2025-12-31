@@ -81,6 +81,7 @@ export interface RoomStateData {
     isReady: boolean;
   }>;
   roomId: string;
+  previousWinners?: string[]; // Array of player IDs who won the previous game
 }
 
 export interface RoomInfo {

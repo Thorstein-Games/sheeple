@@ -39,6 +39,9 @@ export default function RoomPage() {
   const [gameEndData, setGameEndData] = useState<GameEndData | null>(null);
   const [hasJoined, setHasJoined] = useState(false);
   const [readyPlayers, setReadyPlayers] = useState<Set<string>>(new Set());
+  const [previousWinners, setPreviousWinners] = useState<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     if (!contextPlayerName) {
@@ -90,6 +93,11 @@ export default function RoomPage() {
         .filter((p) => p.isReady)
         .map((p) => p.playerId);
       setReadyPlayers(new Set(readyPlayerIds));
+
+      // Update previous winners
+      if (data.previousWinners && data.previousWinners.length > 0) {
+        setPreviousWinners(new Set(data.previousWinners));
+      }
     };
 
     const handlePlayerReadyStatus = (data: {
@@ -286,7 +294,14 @@ export default function RoomPage() {
                         : "bg-gray-50 border-gray-200"
                     }`}
                   >
-                    <span className="font-medium">{player.playerName}</span>
+                    <span className="font-medium flex items-center gap-2">
+                      {previousWinners.has(player.playerId) && (
+                        <span className="text-xl" title="Previous Game Winner">
+                          🏆
+                        </span>
+                      )}
+                      {player.playerName}
+                    </span>
                     <div className="flex items-center gap-2">
                       {readyPlayers.has(player.playerId) && (
                         <span className="text-sm bg-green-600 text-white px-2 py-1 rounded">

@@ -20,6 +20,7 @@ export interface GameRoom {
   answers: Map<string, string>;
   scores: Map<string, number>;
   totalRounds: number;
+  previousWinners: Set<string>;
 }
 
 export class GameManager {
@@ -65,6 +66,7 @@ export class GameManager {
       answers: new Map(),
       scores: new Map(),
       totalRounds: 5,
+      previousWinners: new Set(),
     };
     this.rooms.set(roomId, room);
     return room;
@@ -293,8 +295,14 @@ export class GameManager {
       }
     });
 
-    // Sort by score descending
+    // Track winner(s) for next game - find all players with highest score
     players.sort((a, b) => b.score - a.score);
+    const highestScore = players[0]?.score || 0;
+    const winners = players.filter((p) => p.score === highestScore);
+    room.previousWinners.clear();
+    winners.forEach((winner) => {
+      room.previousWinners.add(winner.playerId);
+    });
 
     this.io.to(roomId).emit(GameEvents.GAME_END, {
       scores,
@@ -338,6 +346,7 @@ export class GameManager {
       currentRound: room.currentRound,
       totalRounds: room.totalRounds,
       players: Array.from(room.players.values()),
+      previousWinners: Array.from(room.previousWinners),
     };
   }
 

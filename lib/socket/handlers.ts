@@ -58,25 +58,26 @@ function handleJoinGame(
 ) {
   const { playerName, roomId, isPrivate = false } = data;
 
-  // If roomId provided, join that room, otherwise create a new one
   const room = roomId || generateRoomId();
 
-  // Check if this socket is already in a room
   if (socket.data.roomId === room) {
     console.log(
       `Player ${socket.id} already in room ${room}, sending room state`
     );
 
     // Send current room state with all players
-    const existingPlayers = gameManager.getPlayers(room);
-    socket.emit(GameEvents.ROOM_STATE, {
-      roomId: room,
-      players: existingPlayers.map((p) => ({
-        playerId: p.playerId,
-        playerName: p.playerName,
-        isReady: p.isReady,
-      })),
-    });
+    const roomState = gameManager.getRoomState(room);
+    if (roomState) {
+      socket.emit(GameEvents.ROOM_STATE, {
+        roomId: roomState.roomId,
+        players: roomState.players.map((p) => ({
+          playerId: p.playerId,
+          playerName: p.playerName,
+          isReady: p.isReady,
+        })),
+        previousWinners: roomState.previousWinners,
+      });
+    }
     return;
   }
 
@@ -94,7 +95,6 @@ function handleJoinGame(
   socket.data.playerName = playerName;
   socket.data.roomId = room;
 
-  // Add player to game manager (returns false if already exists)
   const added = gameManager.addPlayer(room, socket.id, playerName, isPrivate);
 
   if (!added) {
@@ -103,15 +103,18 @@ function handleJoinGame(
     );
 
     // Send current room state
-    const existingPlayers = gameManager.getPlayers(room);
-    socket.emit(GameEvents.ROOM_STATE, {
-      roomId: room,
-      players: existingPlayers.map((p) => ({
-        playerId: p.playerId,
-        playerName: p.playerName,
-        isReady: p.isReady,
-      })),
-    });
+    const roomState = gameManager.getRoomState(room);
+    if (roomState) {
+      socket.emit(GameEvents.ROOM_STATE, {
+        roomId: roomState.roomId,
+        players: roomState.players.map((p) => ({
+          playerId: p.playerId,
+          playerName: p.playerName,
+          isReady: p.isReady,
+        })),
+        previousWinners: roomState.previousWinners,
+      });
+    }
     return;
   }
 
@@ -123,11 +126,14 @@ function handleJoinGame(
   });
 
   // Send full room state to the joining player
-  const allPlayers = gameManager.getPlayers(room);
-  socket.emit(GameEvents.ROOM_STATE, {
-    roomId: room,
-    players: allPlayers,
-  });
+  const roomState = gameManager.getRoomState(room);
+  if (roomState) {
+    socket.emit(GameEvents.ROOM_STATE, {
+      roomId: roomState.roomId,
+      players: roomState.players,
+      previousWinners: roomState.previousWinners,
+    });
+  }
 
   console.log(
     `${playerName} joined room ${room} (${
