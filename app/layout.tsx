@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { SocketProvider } from "@/lib/socket";
 import { Navbar } from "./components/Navbar";
+import { Footer } from "./components/Footer";
 
 export const metadata: Metadata = {
   title: "Sheeple Game",
@@ -28,10 +29,11 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body>
+      <body className="flex flex-col min-h-screen">
         <SocketProvider>
           <Navbar />
-          <main>{children}</main>
+          <main className="flex-1">{children}</main>
+          <Footer />
         </SocketProvider>
       </body>
     </html>
