@@ -1,6 +1,7 @@
 import { Server as SocketIOServer } from "socket.io";
 import { GameEvents } from "../socket/events";
 import { MAX_PLAYERS } from "../constants";
+import { PromptQueue } from "./prompts";
 
 export interface Player {
   playerId: string;
@@ -21,35 +22,12 @@ export interface GameRoom {
   scores: Map<string, number>;
   totalRounds: number;
   previousWinners: Set<string>;
+  promptQueue: PromptQueue;
 }
 
 export class GameManager {
   private rooms: Map<string, GameRoom> = new Map();
   private io: SocketIOServer;
-
-  // Sample prompts for Sheeple game
-  private prompts = [
-    "Name a fruit",
-    "Name a color",
-    "Name a pizza topping",
-    "Name a day of the week",
-    "Name a country",
-    "Name an animal",
-    "Name a sport",
-    "Name a movie genre",
-    "Name a breakfast food",
-    "Name a school subject",
-    "Name a musical instrument",
-    "Name a type of weather",
-    "Name a beverage",
-    "Name a car brand",
-    "Name a city",
-    "Name a video game",
-    "Name a dessert",
-    "Name a vegetable",
-    "Name a season",
-    "Name a superhero",
-  ];
 
   constructor(io: SocketIOServer) {
     this.io = io;
@@ -67,6 +45,7 @@ export class GameManager {
       scores: new Map(),
       totalRounds: 5,
       previousWinners: new Set(),
+      promptQueue: new PromptQueue(),
     };
     this.rooms.set(roomId, room);
     return room;
@@ -168,9 +147,8 @@ export class GameManager {
     room.currentRound++;
     room.answers.clear();
 
-    // Pick a random prompt
-    const promptIndex = Math.floor(Math.random() * this.prompts.length);
-    room.currentPrompt = this.prompts[promptIndex];
+    // Get next prompt from the queue (no repeats until all prompts used)
+    room.currentPrompt = room.promptQueue.getNext();
 
     this.io.to(roomId).emit(GameEvents.ROUND_START, {
       roundNumber: room.currentRound,
