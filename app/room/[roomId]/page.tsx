@@ -192,6 +192,24 @@ export default function RoomPage() {
     });
   };
 
+  const handlePlayAgain = () => {
+    // Reset game state to go back to ready screen
+    setGameEnded(false);
+    setGameEndData(null);
+    setGameStarted(false);
+    setCurrentRound(null);
+    setPlayerAnswer("");
+    setHasSubmitted(false);
+    setRevealedAnswers(null);
+    setScores(null);
+    setIsReady(true);
+
+    // Add current player to ready players
+    if (socket?.id) {
+      setReadyPlayers((prev) => new Set(prev).add(socket.id!));
+    }
+  };
+
   if (!contextPlayerName) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-sky-200 to-blue-100 flex items-center justify-center">
@@ -210,6 +228,8 @@ export default function RoomPage() {
           <GameEndScreen
             gameEndData={gameEndData}
             currentPlayerId={socket?.id}
+            socket={socket}
+            onPlayAgain={handlePlayAgain}
           />
         ) : !gameStarted ? (
           <div className="bg-white rounded-2xl shadow-xl p-8">

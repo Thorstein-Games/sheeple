@@ -1,19 +1,22 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import type { Socket } from "socket.io-client";
+import { GameEvents } from "@/lib/socket/events";
 import type { GameEndData } from "@/lib/socket/types";
 
 interface GameEndScreenProps {
   gameEndData: GameEndData;
   currentPlayerId: string | undefined;
+  socket: Socket | null;
+  onPlayAgain: () => void;
 }
 
 export default function GameEndScreen({
   gameEndData,
   currentPlayerId,
+  socket,
+  onPlayAgain,
 }: GameEndScreenProps) {
-  const router = useRouter();
-
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8">
       <div className="text-center mb-8">
@@ -64,10 +67,15 @@ export default function GameEndScreen({
       </div>
 
       <button
-        onClick={() => router.push("/")}
-        className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors"
+        onClick={() => {
+          if (socket) {
+            socket.emit(GameEvents.PLAYER_READY);
+            onPlayAgain();
+          }
+        }}
+        className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-green-700 transition-colors"
       >
-        Back to Lobby
+        Play Again
       </button>
     </div>
   );
