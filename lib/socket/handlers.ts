@@ -200,6 +200,12 @@ function handleSubmitAnswer(
     playerId: socket.id,
     playerName: socket.data.playerName,
   });
+
+  // Broadcast to all players in the room that this player submitted
+  io.to(room).emit(GameEvents.ANSWER_SUBMITTED, {
+    playerId: socket.id,
+    playerName: socket.data.playerName,
+  });
 }
 
 function handleDisconnect(io: SocketIOServer, socket: Socket) {

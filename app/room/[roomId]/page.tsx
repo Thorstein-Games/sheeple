@@ -15,6 +15,7 @@ import type {
   UpdateScoresData,
   GameEndData,
   RoomStateData,
+  AnswerSubmittedData,
 } from "@/lib/socket/types";
 
 export default function RoomPage() {
@@ -42,6 +43,9 @@ export default function RoomPage() {
   const [hasJoined, setHasJoined] = useState(false);
   const [readyPlayers, setReadyPlayers] = useState<Set<string>>(new Set());
   const [previousWinners, setPreviousWinners] = useState<Set<string>>(
+    new Set()
+  );
+  const [submittedPlayers, setSubmittedPlayers] = useState<Set<string>>(
     new Set()
   );
 
@@ -137,10 +141,15 @@ export default function RoomPage() {
       setPlayerAnswer("");
       setHasSubmitted(false);
       setRevealedAnswers(null);
+      setSubmittedPlayers(new Set()); // Reset submission tracking for new round
     });
 
-    socket.on(GameEvents.ANSWER_SUBMITTED, () => {
-      setHasSubmitted(true);
+    socket.on(GameEvents.ANSWER_SUBMITTED, (data: AnswerSubmittedData) => {
+      if (data.playerId === socket.id) {
+        setHasSubmitted(true);
+      }
+      // Track all player submissions
+      setSubmittedPlayers((prev) => new Set(prev).add(data.playerId));
     });
 
     socket.on(GameEvents.REVEAL_ANSWERS, (data: RevealAnswersData) => {
@@ -296,6 +305,38 @@ export default function RoomPage() {
                     </p>
                   </div>
                 )}
+
+                {/* Player Submission Status */}
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">
+                    Player Status ({submittedPlayers.size}/{players.length})
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {players.map((player) => {
+                      const hasSubmitted = submittedPlayers.has(
+                        player.playerId
+                      );
+                      return (
+                        <div
+                          key={player.playerId}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                            hasSubmitted
+                              ? "bg-green-100 text-green-700"
+                              : "bg-gray-100 text-gray-600"
+                          }`}
+                        >
+                          <span className="text-lg">
+                            {hasSubmitted ? "✓" : "○"}
+                          </span>
+                          <span className="text-sm truncate">
+                            {player.playerName}
+                            {player.playerId === socket?.id && " (You)"}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             )}
 
