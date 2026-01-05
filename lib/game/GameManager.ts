@@ -18,11 +18,22 @@ export interface GameRoom {
   isPrivate: boolean;
   currentRound: number;
   currentPrompt: string;
-  answers: Map<string, string>;
+  answers: Map<string, string>; // playerId -> normalized answer for comparison
+  originalAnswers: Map<string, string>; // playerId -> original answer for display
   scores: Map<string, number>;
   totalRounds: number;
   previousWinners: Set<string>;
   promptQueue: PromptQueue;
+}
+
+/**
+ * Normalizes an answer for comparison by:
+ * - Converting to lowercase
+ * - Removing all non-alphanumeric characters (punctuation, spaces, special chars)
+ * This allows flexible matching (e.g., "don't" matches "dont", "New York" matches "newyork")
+ */
+function normalizeAnswer(answer: string): string {
+  return answer.toLowerCase().replace(/[^a-z0-9]/g, ""); // Keep only letters and numbers
 }
 
 export class GameManager {
@@ -42,6 +53,7 @@ export class GameManager {
       currentRound: 0,
       currentPrompt: "",
       answers: new Map(),
+      originalAnswers: new Map(),
       scores: new Map(),
       totalRounds: 5,
       previousWinners: new Set(),
@@ -91,6 +103,7 @@ export class GameManager {
     room.players.delete(playerId);
     room.scores.delete(playerId);
     room.answers.delete(playerId);
+    room.originalAnswers.delete(playerId);
 
     // Clean up empty rooms
     if (room.players.size === 0) {
@@ -146,6 +159,7 @@ export class GameManager {
 
     room.currentRound++;
     room.answers.clear();
+    room.originalAnswers.clear();
 
     // Get next prompt from the queue (no repeats until all prompts used)
     room.currentPrompt = room.promptQueue.getNext();
@@ -165,7 +179,9 @@ export class GameManager {
     const room = this.getRoom(roomId);
     if (!room) return false;
 
-    room.answers.set(playerId, answer.toLowerCase().trim());
+    // Store both normalized answer (for comparison) and original (for display)
+    room.answers.set(playerId, normalizeAnswer(answer));
+    room.originalAnswers.set(playerId, answer.trim());
 
     // Check if all players have answered
     if (room.answers.size === room.players.size) {
@@ -182,24 +198,27 @@ export class GameManager {
     const room = this.getRoom(roomId);
     if (!room) return;
 
-    // Calculate scores
+    // Calculate scores using normalized answers for comparison
     const answerCounts = new Map<string, number>();
     const answerPlayers = new Map<string, string[]>();
 
-    // Count answer frequencies
-    room.answers.forEach((answer, playerId) => {
-      answerCounts.set(answer, (answerCounts.get(answer) || 0) + 1);
-      if (!answerPlayers.has(answer)) {
-        answerPlayers.set(answer, []);
+    // Count answer frequencies based on normalized answers
+    room.answers.forEach((normalizedAnswer, playerId) => {
+      answerCounts.set(
+        normalizedAnswer,
+        (answerCounts.get(normalizedAnswer) || 0) + 1
+      );
+      if (!answerPlayers.has(normalizedAnswer)) {
+        answerPlayers.set(normalizedAnswer, []);
       }
-      answerPlayers.get(answer)!.push(playerId);
+      answerPlayers.get(normalizedAnswer)!.push(playerId);
     });
 
     // Award points: players get points equal to how many others gave the same answer
-    answerCounts.forEach((count, answer) => {
+    answerCounts.forEach((count, normalizedAnswer) => {
       if (count > 1) {
         // Only award points if multiple people gave the same answer
-        const players = answerPlayers.get(answer)!;
+        const players = answerPlayers.get(normalizedAnswer)!;
         players.forEach((playerId) => {
           const currentScore = room.scores.get(playerId) || 0;
           room.scores.set(playerId, currentScore + count);
@@ -207,15 +226,16 @@ export class GameManager {
       }
     });
 
-    // Emit reveal answers
+    // Emit reveal answers using original answers for display
     const answers = Array.from(room.answers.entries()).map(
-      ([playerId, answer]) => {
+      ([playerId, normalizedAnswer]) => {
         const player = room.players.get(playerId);
-        const count = answerCounts.get(answer) || 0;
+        const originalAnswer = room.originalAnswers.get(playerId) || "";
+        const count = answerCounts.get(normalizedAnswer) || 0;
         return {
           playerId,
           playerName: player?.playerName || "Unknown",
-          answer,
+          answer: originalAnswer, // Display the original answer
           count,
           points: count > 1 ? count : 0,
         };
@@ -296,6 +316,7 @@ export class GameManager {
     room.isGameStarted = false;
     room.currentRound = 0;
     room.answers.clear();
+    room.originalAnswers.clear();
     room.scores.clear();
     room.players.forEach((player) => {
       player.isReady = false;
