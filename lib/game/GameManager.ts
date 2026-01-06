@@ -281,13 +281,15 @@ export class GameManager {
 
     // Award points: players get points equal to how many others gave the same answer
     // Only players who submitted answers can earn points
+    // Maximum points per round is capped at 3
     answerCounts.forEach((count, normalizedAnswer) => {
       if (count > 1) {
         // Only award points if multiple people gave the same answer
         const players = answerPlayers.get(normalizedAnswer)!;
+        const pointsToAward = Math.min(count, 3); // Cap points at 3
         players.forEach((playerId) => {
           const currentScore = room.scores.get(playerId) || 0;
-          room.scores.set(playerId, currentScore + count);
+          room.scores.set(playerId, currentScore + pointsToAward);
         });
       }
     });
@@ -304,7 +306,7 @@ export class GameManager {
           playerName: player?.playerName || "Unknown",
           answer: originalAnswer, // Display the original answer
           count,
-          points: count > 1 ? count : 0,
+          points: count > 1 ? Math.min(count, 3) : 0, // Cap displayed points at 3
         };
       }
     );
