@@ -44,6 +44,11 @@ export function setupSocketHandlers(io: SocketIOServer) {
       handleNextRound(io, socket);
     });
 
+    // Handle get time remaining request
+    socket.on(GameEvents.GET_TIME_REMAINING, () => {
+      handleGetTimeRemaining(io, socket);
+    });
+
     // Handle disconnect
     socket.on("disconnect", () => {
       handleDisconnect(io, socket);
@@ -259,6 +264,28 @@ function handleNextRound(io: SocketIOServer, socket: Socket) {
       message: "Cannot start next round at this time",
     });
   }
+}
+
+function handleGetTimeRemaining(io: SocketIOServer, socket: Socket) {
+  const room = socket.data.roomId;
+
+  if (!room) {
+    socket.emit(GameEvents.ERROR, { message: "Not in a room" });
+    return;
+  }
+
+  const timeRemaining = gameManager.getTimeRemaining(room);
+  const roomState = gameManager.getRoomState(room);
+
+  if (timeRemaining === null || !roomState) {
+    socket.emit(GameEvents.ERROR, { message: "No active round" });
+    return;
+  }
+
+  socket.emit(GameEvents.TIME_REMAINING, {
+    timeRemaining,
+    roundNumber: roomState.currentRound,
+  });
 }
 
 function handleDisconnect(io: SocketIOServer, socket: Socket) {

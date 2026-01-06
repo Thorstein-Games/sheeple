@@ -1,16 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Socket } from "socket.io-client";
+import { GameEvents } from "@/lib/socket/events";
+import type { TimeRemainingData } from "@/lib/socket/types";
 import "./CountdownTimer.css";
 
 interface CountdownTimerProps {
   timeLimit: number; // in milliseconds
   onTimeUp: () => void;
+  socket?: Socket | null;
+  currentRound?: number;
 }
 
 export default function CountdownTimer({
   timeLimit,
   onTimeUp,
+  socket,
+  currentRound,
 }: CountdownTimerProps) {
   const [timeRemaining, setTimeRemaining] = useState(timeLimit);
   const [hasEnded, setHasEnded] = useState(false);
@@ -18,7 +25,31 @@ export default function CountdownTimer({
   useEffect(() => {
     setTimeRemaining(timeLimit);
     setHasEnded(false);
-  }, [timeLimit]);
+  }, [timeLimit, currentRound]);
+
+  // Sync with backend every 5 seconds
+  useEffect(() => {
+    if (!socket || hasEnded) return;
+
+    const syncInterval = setInterval(() => {
+      socket.emit(GameEvents.GET_TIME_REMAINING);
+    }, 5000);
+
+    const handleTimeSync = (data: TimeRemainingData) => {
+      // Only update if it's for the current round
+      if (data.roundNumber === currentRound) {
+        setTimeRemaining(data.timeRemaining);
+        console.log("Timer synced with server:", data.timeRemaining);
+      }
+    };
+
+    socket.on(GameEvents.TIME_REMAINING, handleTimeSync);
+
+    return () => {
+      clearInterval(syncInterval);
+      socket.off(GameEvents.TIME_REMAINING, handleTimeSync);
+    };
+  }, [socket, hasEnded, currentRound]);
 
   useEffect(() => {
     if (hasEnded) return;

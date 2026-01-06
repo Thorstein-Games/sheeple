@@ -349,6 +349,8 @@ export default function RoomPage() {
                     <CountdownTimer
                       timeLimit={currentRound.timeLimit}
                       onTimeUp={handleTimeUp}
+                      socket={socket}
+                      currentRound={currentRound.roundNumber}
                     />
                   </div>
                 </div>
@@ -363,7 +365,6 @@ export default function RoomPage() {
                         type="text"
                         value={playerAnswer}
                         onChange={(e) => setPlayerAnswer(e.target.value)}
-                        onBlur={handleSaveAnswer}
                         onKeyDown={(e) =>
                           e.key === "Enter" && handleSubmitAnswer()
                         }

@@ -51,6 +51,11 @@ export interface RoundStartData {
   timeLimit: number;
 }
 
+export interface TimeRemainingData {
+  timeRemaining: number; // milliseconds remaining in current round
+  roundNumber: number;
+}
+
 export interface RevealAnswersData {
   answers: Array<{
     playerId: string;

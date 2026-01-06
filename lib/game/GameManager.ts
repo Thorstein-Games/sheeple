@@ -196,11 +196,16 @@ export class GameManager {
 
     // Set server-side timer to auto-reveal answers after time limit
     room.roundTimer = setTimeout(() => {
-      console.log(`Time's up for round ${room.currentRound} in room ${roomId}`);
-      // Only reveal if we haven't already (e.g., all players submitted early)
-      if (room.currentRound > 0 && !room.waitingForNextRound) {
-        this.revealAnswers(roomId);
-      }
+      // Small delay to give players a little buffer
+      setTimeout(() => {
+        console.log(
+          `Time's up for round ${room.currentRound} in room ${roomId}`
+        );
+        // Only reveal if we haven't already (e.g., all players submitted early)
+        if (room.currentRound > 0 && !room.waitingForNextRound) {
+          this.revealAnswers(roomId);
+        }
+      }, 500);
     }, timeLimit);
   }
 
@@ -435,5 +440,18 @@ export class GameManager {
     room.waitingForNextRound = false;
     this.startRound(roomId);
     return true;
+  }
+
+  getTimeRemaining(roomId: string): number | null {
+    const room = this.getRoom(roomId);
+    if (!room || !room.roundStartTime || room.currentRound === 0) {
+      return null;
+    }
+
+    const timeLimit = 30000; // 30 seconds
+    const elapsed = Date.now() - room.roundStartTime;
+    const remaining = Math.max(0, timeLimit - elapsed);
+
+    return remaining;
   }
 }

@@ -17,6 +17,8 @@ export enum GameEvents {
   ROUND_START = "round_start",
   ROUND_END = "round_end",
   NEXT_ROUND = "next_round",
+  GET_TIME_REMAINING = "get_time_remaining",
+  TIME_REMAINING = "time_remaining",
 
   // Answer events
   SUBMIT_ANSWER = "submit_answer",
