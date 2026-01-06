@@ -403,6 +403,17 @@ export class GameManager {
       player.score = 0;
     });
 
+    // Broadcast updated room state to all players in the room
+    this.io.to(roomId).emit(GameEvents.ROOM_STATE, {
+      roomId: room.roomId,
+      players: Array.from(room.players.values()).map((p) => ({
+        playerId: p.playerId,
+        playerName: p.playerName,
+        isReady: p.isReady,
+      })),
+      previousWinners: Array.from(room.previousWinners),
+    });
+
     // Broadcast updated rooms list to all connected clients (for lobby)
     const rooms = this.getAllRooms();
     this.io.emit(GameEvents.ROOMS_LIST, { rooms });

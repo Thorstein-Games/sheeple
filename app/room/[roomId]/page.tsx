@@ -134,6 +134,14 @@ export default function RoomPage() {
         .map((p) => p.playerId);
       setReadyPlayers(new Set(readyPlayerIds));
 
+      // Update local isReady state for current player
+      if (socket?.id) {
+        const currentPlayer = data.players.find(p => p.playerId === socket.id);
+        if (currentPlayer) {
+          setIsReady(currentPlayer.isReady);
+        }
+      }
+
       // Update previous winners
       if (data.previousWinners && data.previousWinners.length > 0) {
         setPreviousWinners(new Set(data.previousWinners));
