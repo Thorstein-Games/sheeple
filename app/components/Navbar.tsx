@@ -41,7 +41,7 @@ export function Navbar() {
             {showLeaveButton && (
               <button
                 onClick={handleLeaveRoom}
-                className="text-gray-600 cursor-pointer hover:text-gray-900 hover:bg-gray-100 p-2 rounded-lg transition-colors"
+                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 p-2 rounded-lg transition-colors"
                 aria-label="Go back"
               >
                 <img src="/arrow-left.svg" alt="Back" className="h-5 w-5" />
@@ -56,7 +56,7 @@ export function Navbar() {
               <img
                 src="/sheeple.png"
                 alt="Sheeple"
-                className="h-10 w-auto cursor-pointer hover:opacity-80 transition-opacity"
+                className="h-10 w-auto hover:opacity-80 transition-opacity"
               />
             </Link>
           </div>

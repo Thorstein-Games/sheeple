@@ -109,7 +109,7 @@ export default function ReadyRoom({
           <button
             onClick={onPlayerReady}
             disabled={!isConnected || players.length < MIN_PLAYERS}
-            className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg cursor-pointer hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
             Ready
           </button>

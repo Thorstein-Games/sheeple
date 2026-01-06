@@ -26,6 +26,10 @@ export interface SubmitAnswerData {
   answer: string;
 }
 
+export interface SaveAnswerDraftData {
+  answer: string;
+}
+
 export interface AnswerSubmittedData {
   playerId: string;
   playerName: string;

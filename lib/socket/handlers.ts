@@ -34,6 +34,11 @@ export function setupSocketHandlers(io: SocketIOServer) {
       handleSubmitAnswer(io, socket, data);
     });
 
+    // Handle answer draft save
+    socket.on(GameEvents.SAVE_ANSWER_DRAFT, (data: { answer: string }) => {
+      handleSaveAnswerDraft(io, socket, data);
+    });
+
     // Handle next round request
     socket.on(GameEvents.NEXT_ROUND, () => {
       handleNextRound(io, socket);
@@ -211,6 +216,31 @@ function handleSubmitAnswer(
     playerId: socket.id,
     playerName: socket.data.playerName,
   });
+}
+
+function handleSaveAnswerDraft(
+  io: SocketIOServer,
+  socket: Socket,
+  data: { answer: string }
+) {
+  const room = socket.data.roomId;
+
+  if (!room) {
+    socket.emit(GameEvents.ERROR, { message: "Not in a room" });
+    return;
+  }
+
+  // Save draft answer to game manager (doesn't mark as submitted)
+  const success = gameManager.saveAnswerDraft(room, socket.id, data.answer);
+
+  if (!success) {
+    socket.emit(GameEvents.ERROR, { message: "Failed to save answer draft" });
+    return;
+  }
+
+  console.log(
+    `Draft answer saved for player ${socket.data.playerName} in room ${room}: "${data.answer}"`
+  );
 }
 
 function handleNextRound(io: SocketIOServer, socket: Socket) {

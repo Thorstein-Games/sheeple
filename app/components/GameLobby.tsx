@@ -121,7 +121,7 @@ export function GameLobby({ playerName }: GameLobbyProps) {
             <button
               onClick={() => handleJoinGame()}
               disabled={!isConnected}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold cursor-pointer hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               {roomId
                 ? `Join Room ${roomId}`
@@ -176,7 +176,7 @@ export function GameLobby({ playerName }: GameLobbyProps) {
                     room.isGameStarted ||
                     room.isPrivate
                   }
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold cursor-pointer hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
                   {room.isPrivate
                     ? "Private"

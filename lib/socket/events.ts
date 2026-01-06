@@ -21,12 +21,8 @@ export enum GameEvents {
   // Answer events
   SUBMIT_ANSWER = "submit_answer",
   ANSWER_SUBMITTED = "answer_submitted",
+  SAVE_ANSWER_DRAFT = "save_answer_draft", // Save answer without marking as submitted
   REVEAL_ANSWERS = "reveal_answers",
-
-  // Voting events
-  SUBMIT_VOTE = "submit_vote",
-  VOTE_SUBMITTED = "vote_submitted",
-  VOTING_COMPLETE = "voting_complete",
 
   // Score events
   UPDATE_SCORES = "update_scores",

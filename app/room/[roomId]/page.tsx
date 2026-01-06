@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useSocket } from "@/lib/socket/SocketProvider";
 import { GameEvents } from "@/lib/socket/events";
-import { MIN_PLAYERS, MAX_PLAYERS } from "@/lib/constants";
 import GameEndScreen from "@/app/components/GameEndScreen";
 import ReadyRoom from "@/app/components/ReadyRoom";
+import CountdownTimer from "@/app/components/CountdownTimer";
 import type {
   PlayerJoinedData,
   GameStartData,
@@ -35,6 +35,7 @@ export default function RoomPage() {
   const [currentRound, setCurrentRound] = useState<RoundStartData | null>(null);
   const [playerAnswer, setPlayerAnswer] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [savedAnswer, setSavedAnswer] = useState(""); // Track saved (but not submitted) answer
   const [revealedAnswers, setRevealedAnswers] =
     useState<RevealAnswersData | null>(null);
   const [scores, setScores] = useState<UpdateScoresData | null>(null);
@@ -51,11 +52,42 @@ export default function RoomPage() {
   const [showNextRoundButton, setShowNextRoundButton] = useState(false);
   const [totalRounds, setTotalRounds] = useState(5);
 
+  // Ref to store the debounce timer
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     if (!contextPlayerName) {
       router.push("/");
     }
   }, [contextPlayerName, router]);
+
+  // Debounced auto-save effect for player answer
+  useEffect(() => {
+    // Clear any existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Don't save if answer is empty, already submitted, or no socket
+    if (!playerAnswer.trim() || hasSubmitted || !socket) {
+      return;
+    }
+
+    // Set a new timer to save after 1 second of no typing
+    debounceTimerRef.current = setTimeout(() => {
+      setSavedAnswer(playerAnswer.trim());
+      socket.emit(GameEvents.SAVE_ANSWER_DRAFT, {
+        answer: playerAnswer.trim(),
+      });
+    }, 1000); // 1 second debounce
+
+    // Cleanup function
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [playerAnswer, hasSubmitted, socket]);
 
   useEffect(() => {
     if (!socket || !contextPlayerName || hasJoined) return;
@@ -144,6 +176,7 @@ export default function RoomPage() {
       console.log("Round starting:", data);
       setCurrentRound(data);
       setPlayerAnswer("");
+      setSavedAnswer("");
       setHasSubmitted(false);
       setRevealedAnswers(null);
       setSubmittedPlayers(new Set()); // Reset submission tracking for new round
@@ -204,10 +237,38 @@ export default function RoomPage() {
   };
 
   const handleSubmitAnswer = () => {
-    if (!socket || !playerAnswer.trim()) return;
+    if (!socket || !playerAnswer.trim() || hasSubmitted) return;
     socket.emit(GameEvents.SUBMIT_ANSWER, {
       answer: playerAnswer.trim(),
     });
+    setSavedAnswer(playerAnswer.trim());
+  };
+
+  const handleSaveAnswer = () => {
+    // Immediate save on blur (cancels any pending debounce)
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+
+    if (playerAnswer.trim() && !hasSubmitted && socket) {
+      setSavedAnswer(playerAnswer.trim());
+      socket.emit(GameEvents.SAVE_ANSWER_DRAFT, {
+        answer: playerAnswer.trim(),
+      });
+    }
+  };
+
+  const handleTimeUp = () => {
+    // Auto-submit saved answer (or current answer) when time runs out
+    if (!hasSubmitted && socket) {
+      const answer = savedAnswer || playerAnswer.trim() || "[No answer]";
+      socket.emit(GameEvents.SUBMIT_ANSWER, {
+        answer: answer,
+      });
+      // Update local state to match what was submitted
+      setPlayerAnswer(answer);
+    }
   };
 
   const handlePlayAgain = () => {
@@ -217,6 +278,7 @@ export default function RoomPage() {
     setGameStarted(false);
     setCurrentRound(null);
     setPlayerAnswer("");
+    setSavedAnswer("");
     setHasSubmitted(false);
     setRevealedAnswers(null);
     setScores(null);
@@ -271,16 +333,24 @@ export default function RoomPage() {
           <div className="space-y-6">
             {currentRound && !revealedAnswers && (
               <div className="bg-white rounded-2xl shadow-xl p-8">
-                <div className="mb-6">
-                  <p className="text-sm text-gray-600 mb-2">
-                    Round {currentRound.roundNumber}
-                  </p>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                    {currentRound.prompt}
-                  </h2>
-                  <p className="text-gray-600">
-                    Think like the herd! What will most people say?
-                  </p>
+                <div className="mb-6 flex justify-between items-start">
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-600 mb-2">
+                      Round {currentRound.roundNumber}
+                    </p>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                      {currentRound.prompt}
+                    </h2>
+                    <p className="text-gray-600">
+                      Think like the herd! What will most people say?
+                    </p>
+                  </div>
+                  <div className="ml-6">
+                    <CountdownTimer
+                      timeLimit={currentRound.timeLimit}
+                      onTimeUp={handleTimeUp}
+                    />
+                  </div>
                 </div>
 
                 {!hasSubmitted ? (
@@ -293,7 +363,8 @@ export default function RoomPage() {
                         type="text"
                         value={playerAnswer}
                         onChange={(e) => setPlayerAnswer(e.target.value)}
-                        onKeyPress={(e) =>
+                        onBlur={handleSaveAnswer}
+                        onKeyDown={(e) =>
                           e.key === "Enter" && handleSubmitAnswer()
                         }
                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"

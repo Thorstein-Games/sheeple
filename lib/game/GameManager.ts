@@ -20,11 +20,14 @@ export interface GameRoom {
   currentPrompt: string;
   answers: Map<string, string>; // playerId -> normalized answer for comparison
   originalAnswers: Map<string, string>; // playerId -> original answer for display
+  submittedPlayers: Set<string>; // Players who officially submitted (not just drafts)
   scores: Map<string, number>;
   totalRounds: number;
   previousWinners: Set<string>;
   promptQueue: PromptQueue;
   waitingForNextRound: boolean; // Track if we're waiting for players to continue
+  roundTimer?: NodeJS.Timeout; // Timer for current round
+  roundStartTime?: number; // Timestamp when round started
 }
 
 /**
@@ -55,6 +58,7 @@ export class GameManager {
       currentPrompt: "",
       answers: new Map(),
       originalAnswers: new Map(),
+      submittedPlayers: new Set(),
       scores: new Map(),
       totalRounds: 5,
       previousWinners: new Set(),
@@ -109,6 +113,11 @@ export class GameManager {
 
     // Clean up empty rooms
     if (room.players.size === 0) {
+      // Clear any active round timer
+      if (room.roundTimer) {
+        clearTimeout(room.roundTimer);
+        room.roundTimer = undefined;
+      }
       this.rooms.delete(roomId);
     }
   }
@@ -159,22 +168,40 @@ export class GameManager {
     const room = this.getRoom(roomId);
     if (!room) return;
 
+    // Clear any existing timer
+    if (room.roundTimer) {
+      clearTimeout(room.roundTimer);
+    }
+
     room.currentRound++;
     room.answers.clear();
     room.originalAnswers.clear();
+    room.submittedPlayers.clear();
+    room.roundStartTime = Date.now();
 
     // Get next prompt from the queue (no repeats until all prompts used)
     room.currentPrompt = room.promptQueue.getNext();
 
+    const timeLimit = 30000; // 30 seconds
+
     this.io.to(roomId).emit(GameEvents.ROUND_START, {
       roundNumber: room.currentRound,
       prompt: room.currentPrompt,
-      timeLimit: 30000, // 30 seconds
+      timeLimit: timeLimit,
     });
 
     console.log(
       `Round ${room.currentRound} started in room ${roomId}: ${room.currentPrompt}`
     );
+
+    // Set server-side timer to auto-reveal answers after time limit
+    room.roundTimer = setTimeout(() => {
+      console.log(`Time's up for round ${room.currentRound} in room ${roomId}`);
+      // Only reveal if we haven't already (e.g., all players submitted early)
+      if (room.currentRound > 0 && !room.waitingForNextRound) {
+        this.revealAnswers(roomId);
+      }
+    }, timeLimit);
   }
 
   submitAnswer(roomId: string, playerId: string, answer: string): boolean {
@@ -185,9 +212,16 @@ export class GameManager {
     room.answers.set(playerId, normalizeAnswer(answer));
     room.originalAnswers.set(playerId, answer.trim());
 
-    // Check if all players have answered
-    if (room.answers.size === room.players.size) {
-      // All players answered, proceed to reveal
+    // Mark player as officially submitted
+    room.submittedPlayers.add(playerId);
+
+    // Check if all players have submitted (not just saved drafts)
+    if (room.submittedPlayers.size === room.players.size) {
+      // All players submitted, clear timer and proceed to reveal
+      if (room.roundTimer) {
+        clearTimeout(room.roundTimer);
+        room.roundTimer = undefined;
+      }
       setTimeout(() => {
         this.revealAnswers(roomId);
       }, 1000);
@@ -196,11 +230,35 @@ export class GameManager {
     return true;
   }
 
+  saveAnswerDraft(roomId: string, playerId: string, answer: string): boolean {
+    const room = this.getRoom(roomId);
+    if (!room) return false;
+
+    // Only save draft if player hasn't officially submitted yet
+    // We check this by seeing if we've already broadcasted their submission
+    // For now, we'll always update the draft - the submitAnswer will mark it as final
+
+    // Store draft answer (will be used if time runs out or they submit)
+    room.answers.set(playerId, normalizeAnswer(answer));
+    room.originalAnswers.set(playerId, answer.trim());
+
+    // Note: We don't check if all players answered or trigger reveal
+    // This is just a draft save, not a submission
+    return true;
+  }
+
   revealAnswers(roomId: string): void {
     const room = this.getRoom(roomId);
     if (!room) return;
 
-    // Calculate scores using normalized answers for comparison
+    // Clear the round timer if it exists
+    if (room.roundTimer) {
+      clearTimeout(room.roundTimer);
+      room.roundTimer = undefined;
+    }
+
+    // Only count answers from players who actually submitted
+    // Players without answers are excluded from scoring
     const answerCounts = new Map<string, number>();
     const answerPlayers = new Map<string, string[]>();
 
@@ -217,6 +275,7 @@ export class GameManager {
     });
 
     // Award points: players get points equal to how many others gave the same answer
+    // Only players who submitted answers can earn points
     answerCounts.forEach((count, normalizedAnswer) => {
       if (count > 1) {
         // Only award points if multiple people gave the same answer
@@ -229,6 +288,7 @@ export class GameManager {
     });
 
     // Emit reveal answers using original answers for display
+    // Only include players who submitted answers
     const answers = Array.from(room.answers.entries()).map(
       ([playerId, normalizedAnswer]) => {
         const player = room.players.get(playerId);
@@ -276,6 +336,12 @@ export class GameManager {
   endGame(roomId: string): void {
     const room = this.getRoom(roomId);
     if (!room) return;
+
+    // Clear any active round timer
+    if (room.roundTimer) {
+      clearTimeout(room.roundTimer);
+      room.roundTimer = undefined;
+    }
 
     const scores: Record<string, number> = {};
     const players: Array<{
