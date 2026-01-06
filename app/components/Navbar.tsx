@@ -13,6 +13,7 @@ export function Navbar() {
   const getPageName = () => {
     if (pathname === "/") return "Home";
     if (pathname === "/how-to-play") return "How to Play";
+    if (pathname === "/contact") return "Contact";
     if (pathname.includes("/lobby")) return "Lobby";
     if (pathname.includes("/room")) return `Room: ${params.roomId}`;
     return "Sheeple";

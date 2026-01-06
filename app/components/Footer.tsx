@@ -25,12 +25,12 @@ export function Footer() {
             >
               How to Play
             </a>
-            {/* <a
+            <a
               href="/contact"
               className="text-gray-600 hover:text-gray-900 transition-colors"
             >
               Contact
-            </a> */}
+            </a>
           </div>
 
           {/* More Games Button */}
