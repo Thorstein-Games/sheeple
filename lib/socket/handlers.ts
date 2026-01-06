@@ -34,6 +34,11 @@ export function setupSocketHandlers(io: SocketIOServer) {
       handleSubmitAnswer(io, socket, data);
     });
 
+    // Handle next round request
+    socket.on(GameEvents.NEXT_ROUND, () => {
+      handleNextRound(io, socket);
+    });
+
     // Handle disconnect
     socket.on("disconnect", () => {
       handleDisconnect(io, socket);
@@ -206,6 +211,24 @@ function handleSubmitAnswer(
     playerId: socket.id,
     playerName: socket.data.playerName,
   });
+}
+
+function handleNextRound(io: SocketIOServer, socket: Socket) {
+  const room = socket.data.roomId;
+
+  if (!room) {
+    socket.emit(GameEvents.ERROR, { message: "Not in a room" });
+    return;
+  }
+
+  // Start the next round
+  const success = gameManager.startNextRound(room);
+
+  if (!success) {
+    socket.emit(GameEvents.ERROR, {
+      message: "Cannot start next round at this time",
+    });
+  }
 }
 
 function handleDisconnect(io: SocketIOServer, socket: Socket) {

@@ -24,6 +24,7 @@ export interface GameRoom {
   totalRounds: number;
   previousWinners: Set<string>;
   promptQueue: PromptQueue;
+  waitingForNextRound: boolean; // Track if we're waiting for players to continue
 }
 
 /**
@@ -58,6 +59,7 @@ export class GameManager {
       totalRounds: 5,
       previousWinners: new Set(),
       promptQueue: new PromptQueue(),
+      waitingForNextRound: false,
     };
     this.rooms.set(roomId, room);
     return room;
@@ -257,16 +259,17 @@ export class GameManager {
         scores,
       });
 
-      // Check if game should end or start next round
+      // Set flag to wait for players to click "Next Round"
+      room.waitingForNextRound = true;
+
+      // Check if this is the last round
       if (room.currentRound >= room.totalRounds) {
+        // End game after a delay to let players see final scores
         setTimeout(() => {
           this.endGame(roomId);
-        }, 5000);
-      } else {
-        setTimeout(() => {
-          this.startRound(roomId);
-        }, 5000);
+        }, 3000);
       }
+      // For other rounds, wait for player to click "Next Round" button
     }, 2000);
   }
 
@@ -357,5 +360,14 @@ export class GameManager {
       isGameStarted: room.isGameStarted,
       isPrivate: room.isPrivate,
     }));
+  }
+
+  startNextRound(roomId: string): boolean {
+    const room = this.getRoom(roomId);
+    if (!room || !room.waitingForNextRound) return false;
+
+    room.waitingForNextRound = false;
+    this.startRound(roomId);
+    return true;
   }
 }

@@ -16,6 +16,7 @@ export enum GameEvents {
   // Round events
   ROUND_START = "round_start",
   ROUND_END = "round_end",
+  NEXT_ROUND = "next_round",
 
   // Answer events
   SUBMIT_ANSWER = "submit_answer",

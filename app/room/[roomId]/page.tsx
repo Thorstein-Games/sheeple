@@ -48,6 +48,8 @@ export default function RoomPage() {
   const [submittedPlayers, setSubmittedPlayers] = useState<Set<string>>(
     new Set()
   );
+  const [showNextRoundButton, setShowNextRoundButton] = useState(false);
+  const [totalRounds, setTotalRounds] = useState(5);
 
   useEffect(() => {
     if (!contextPlayerName) {
@@ -133,6 +135,9 @@ export default function RoomPage() {
     socket.on(GameEvents.GAME_START, (data: GameStartData) => {
       console.log("Game starting:", data);
       setGameStarted(true);
+      if (data.totalRounds) {
+        setTotalRounds(data.totalRounds);
+      }
     });
 
     socket.on(GameEvents.ROUND_START, (data: RoundStartData) => {
@@ -142,6 +147,7 @@ export default function RoomPage() {
       setHasSubmitted(false);
       setRevealedAnswers(null);
       setSubmittedPlayers(new Set()); // Reset submission tracking for new round
+      setShowNextRoundButton(false); // Hide button when new round starts
     });
 
     socket.on(GameEvents.ANSWER_SUBMITTED, (data: AnswerSubmittedData) => {
@@ -160,6 +166,8 @@ export default function RoomPage() {
     socket.on(GameEvents.UPDATE_SCORES, (data: UpdateScoresData) => {
       console.log("Scores updated:", data);
       setScores(data);
+      // Show "Next Round" button after scores are revealed
+      setShowNextRoundButton(true);
     });
 
     socket.on(GameEvents.GAME_END, (data: GameEndData) => {
@@ -213,11 +221,18 @@ export default function RoomPage() {
     setRevealedAnswers(null);
     setScores(null);
     setIsReady(true);
+    setShowNextRoundButton(false);
 
     // Add current player to ready players
     if (socket?.id) {
       setReadyPlayers((prev) => new Set(prev).add(socket.id!));
     }
+  };
+
+  const handleNextRound = () => {
+    if (!socket) return;
+    socket.emit(GameEvents.NEXT_ROUND);
+    setShowNextRoundButton(false); // Hide button after clicking
   };
 
   if (!contextPlayerName) {
@@ -412,6 +427,17 @@ export default function RoomPage() {
                     </div>
                   </div>
                 )}
+
+                {showNextRoundButton &&
+                  currentRound &&
+                  currentRound.roundNumber < totalRounds && (
+                    <button
+                      onClick={handleNextRound}
+                      className="w-full mt-6 bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Next Round →
+                    </button>
+                  )}
               </div>
             )}
           </div>

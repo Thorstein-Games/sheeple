@@ -37,7 +37,8 @@ export interface ErrorData {
 
 export interface GameStartData {
   roundNumber: number;
-  prompt: string;
+  totalRounds?: number;
+  prompt?: string;
 }
 
 export interface RoundStartData {
