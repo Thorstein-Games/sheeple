@@ -150,6 +150,10 @@ function handleJoinGame(
     });
   }
 
+  // Broadcast updated rooms list to all connected clients (for lobby)
+  const rooms = gameManager.getAllRooms();
+  io.emit(GameEvents.ROOMS_LIST, { rooms });
+
   console.log(
     `${playerName} joined room ${room} (${
       currentPlayerCount + 1
@@ -296,10 +300,15 @@ function handleDisconnect(io: SocketIOServer, socket: Socket) {
     // Remove player from game manager
     gameManager.removePlayer(room, socket.id);
 
+    // Notify players in the room
     io.to(room).emit(GameEvents.PLAYER_LEFT, {
       playerId: socket.id,
       playerName,
     });
+
+    // Broadcast updated rooms list to all connected clients (for lobby)
+    const rooms = gameManager.getAllRooms();
+    io.emit(GameEvents.ROOMS_LIST, { rooms });
   }
 
   console.log(`Client disconnected: ${socket.id} (${playerName})`);

@@ -158,6 +158,10 @@ export class GameManager {
       totalRounds: room.totalRounds,
     });
 
+    // Broadcast updated rooms list to all connected clients (for lobby)
+    const rooms = this.getAllRooms();
+    this.io.emit(GameEvents.ROOMS_LIST, { rooms });
+
     // Start first round after a short delay
     setTimeout(() => {
       this.startRound(roomId);
@@ -398,6 +402,10 @@ export class GameManager {
       player.isReady = false;
       player.score = 0;
     });
+
+    // Broadcast updated rooms list to all connected clients (for lobby)
+    const rooms = this.getAllRooms();
+    this.io.emit(GameEvents.ROOMS_LIST, { rooms });
   }
 
   getPlayerCount(roomId: string): number {
