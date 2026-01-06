@@ -299,7 +299,7 @@ export default function RoomPage() {
 
   if (!contextPlayerName) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-sky-200 to-blue-100 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading...</p>
@@ -309,7 +309,7 @@ export default function RoomPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-200 to-blue-100 py-12 px-4">
+    <div className="min-h-screen py-12 px-4">
       <div className="max-w-4xl mx-auto">
         {gameEnded && gameEndData ? (
           <GameEndScreen
