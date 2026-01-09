@@ -445,13 +445,15 @@ export class GameManager {
   }
 
   getAllRooms() {
-    return Array.from(this.rooms.values()).map((room) => ({
-      roomId: room.roomId,
-      playerCount: room.players.size,
-      maxPlayers: MAX_PLAYERS,
-      isGameStarted: room.isGameStarted,
-      isPrivate: room.isPrivate,
-    }));
+    return Array.from(this.rooms.values())
+      .filter((room) => room.roomId !== "lobby") // Exclude lobby room from list
+      .map((room) => ({
+        roomId: room.roomId,
+        playerCount: room.players.size,
+        maxPlayers: MAX_PLAYERS,
+        isGameStarted: room.isGameStarted,
+        isPrivate: room.isPrivate,
+      }));
   }
 
   startNextRound(roomId: string): boolean {

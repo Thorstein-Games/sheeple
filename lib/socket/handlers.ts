@@ -49,6 +49,11 @@ export function setupSocketHandlers(io: SocketIOServer) {
       handleGetTimeRemaining(io, socket);
     });
 
+    // Handle chat messages
+    socket.on(GameEvents.SEND_MESSAGE, (data: { message: string }) => {
+      handleSendMessage(io, socket, data);
+    });
+
     // Handle disconnect
     socket.on("disconnect", () => {
       handleDisconnect(io, socket);
@@ -312,6 +317,32 @@ function handleDisconnect(io: SocketIOServer, socket: Socket) {
   }
 
   console.log(`Client disconnected: ${socket.id} (${playerName})`);
+}
+
+function handleSendMessage(
+  io: SocketIOServer,
+  socket: Socket,
+  data: { message: string }
+) {
+  const room = socket.data.roomId;
+  const playerName = socket.data.playerName;
+
+  if (!room) {
+    socket.emit(GameEvents.ERROR, { message: "Not in a room" });
+    return;
+  }
+
+  if (!data.message || !data.message.trim()) {
+    return;
+  }
+
+  // Broadcast message to all players in the room (including sender)
+  io.to(room).emit(GameEvents.NEW_MESSAGE, {
+    playerId: socket.id,
+    playerName,
+    message: data.message.trim(),
+    timestamp: Date.now(),
+  });
 }
 
 // Utility function to generate random room IDs
