@@ -29,6 +29,10 @@ export enum GameEvents {
   // Score events
   UPDATE_SCORES = "update_scores",
 
+  // Chat events
+  SEND_MESSAGE = "send_message",
+  NEW_MESSAGE = "new_message",
+
   // Error events
   ERROR = "error",
 }

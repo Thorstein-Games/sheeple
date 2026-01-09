@@ -21,6 +21,21 @@ export function GameLobby({ playerName }: GameLobbyProps) {
   const [roomId, setRoomId] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
   const [rooms, setRooms] = useState<RoomInfo[]>([]);
+  const [hasJoinedLobby, setHasJoinedLobby] = useState(false);
+
+  // Join the lobby room for chat purposes
+  useEffect(() => {
+    if (!socket || !isConnected || !playerName || hasJoinedLobby) return;
+
+    // Join a special "lobby" room for chat
+    socket.emit(GameEvents.JOIN_GAME, {
+      playerName: playerName,
+      roomId: "lobby",
+      isPrivate: true, // Make it private so it doesn't show up in room lists
+    });
+
+    setHasJoinedLobby(true);
+  }, [socket, isConnected, playerName, hasJoinedLobby]);
 
   useEffect(() => {
     if (!socket) return;
@@ -35,11 +50,17 @@ export function GameLobby({ playerName }: GameLobbyProps) {
     });
 
     socket.on(GameEvents.PLAYER_JOINED, (data: PlayerJoinedData) => {
-      router.push(`/room/${data.roomId}`);
+      // Don't navigate if it's the lobby room
+      if (data.roomId !== "lobby") {
+        router.push(`/room/${data.roomId}`);
+      }
     });
 
     socket.on(GameEvents.ROOM_STATE, (data: { roomId: string }) => {
-      router.push(`/room/${data.roomId}`);
+      // Don't navigate if it's the lobby room
+      if (data.roomId !== "lobby") {
+        router.push(`/room/${data.roomId}`);
+      }
     });
 
     socket.on(GameEvents.ERROR, (data: { message: string }) => {

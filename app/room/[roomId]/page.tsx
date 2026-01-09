@@ -7,6 +7,7 @@ import { GameEvents } from "@/lib/socket/events";
 import GameEndScreen from "@/app/components/GameEndScreen";
 import ReadyRoom from "@/app/components/ReadyRoom";
 import CountdownTimer from "@/app/components/CountdownTimer";
+import Chat from "@/app/components/Chat";
 import type {
   PlayerJoinedData,
   GameStartData,
@@ -515,6 +516,9 @@ export default function RoomPage() {
           </div>
         )}
       </div>
+
+      {/* Chat Component */}
+      <Chat roomId={roomId} />
     </div>
   );
 }

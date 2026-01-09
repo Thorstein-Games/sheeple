@@ -105,3 +105,14 @@ export interface RoomInfo {
 export interface RoomsListData {
   rooms: RoomInfo[];
 }
+
+export interface SendMessageData {
+  message: string;
+}
+
+export interface NewMessageData {
+  playerId: string;
+  playerName: string;
+  message: string;
+  timestamp: number;
+}
