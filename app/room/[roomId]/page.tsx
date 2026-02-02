@@ -18,6 +18,7 @@ import type {
   GameEndData,
   RoomStateData,
   AnswerSubmittedData,
+  HostChangedData,
 } from "@/lib/socket/types";
 
 export default function RoomPage() {
@@ -53,6 +54,7 @@ export default function RoomPage() {
   );
   const [showNextRoundButton, setShowNextRoundButton] = useState(false);
   const [totalRounds, setTotalRounds] = useState(5);
+  const [hostId, setHostId] = useState<string | undefined>(undefined);
 
   // Ref to store the debounce timer
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -168,6 +170,11 @@ export default function RoomPage() {
         .map((p) => p.playerId);
       setReadyPlayers(new Set(readyPlayerIds));
 
+      // Update host ID
+      if (data.hostId) {
+        setHostId(data.hostId);
+      }
+
       // Update previous winners
       if (data.previousWinners && data.previousWinners.length > 0) {
         setPreviousWinners(new Set(data.previousWinners));
@@ -193,11 +200,20 @@ export default function RoomPage() {
       });
     };
 
+    const handleHostChanged = (data: {
+      newHostId: string;
+      newHostName: string;
+    }) => {
+      console.log("Host changed:", data);
+      setHostId(data.newHostId);
+    };
+
     socket.on(GameEvents.PLAYER_JOINED, handlePlayerJoined);
     socket.on(GameEvents.PLAYER_RECONNECTED, handlePlayerReconnected);
     socket.on(GameEvents.ROOM_STATE, handleRoomState);
     socket.on(GameEvents.PLAYER_READY_STATUS, handlePlayerReadyStatus);
     socket.on(GameEvents.PLAYER_LEFT, handlePlayerLeft);
+    socket.on(GameEvents.HOST_CHANGED, handleHostChanged);
 
     socket.on(GameEvents.GAME_START, (data: GameStartData) => {
       console.log("Game starting:", data);
@@ -254,6 +270,7 @@ export default function RoomPage() {
       socket.off(GameEvents.PLAYER_RECONNECTED);
       socket.off(GameEvents.ROOM_STATE);
       socket.off(GameEvents.PLAYER_LEFT);
+      socket.off(GameEvents.HOST_CHANGED);
       socket.off(GameEvents.GAME_START);
       socket.off(GameEvents.ROUND_START);
       socket.off(GameEvents.ANSWER_SUBMITTED);
@@ -270,6 +287,11 @@ export default function RoomPage() {
     socket.emit(GameEvents.PLAYER_READY);
     setIsReady(true);
     setReadyPlayers((prev) => new Set(prev).add(socket.id!));
+  };
+
+  const handleStartGame = () => {
+    if (!socket) return;
+    socket.emit(GameEvents.START_GAME);
   };
 
   const handleSubmitAnswer = () => {
@@ -351,6 +373,7 @@ export default function RoomPage() {
           <GameEndScreen
             gameEndData={gameEndData}
             currentPlayerId={socket?.id}
+            hostId={hostId}
             socket={socket}
             onPlayAgain={handlePlayAgain}
           />
@@ -363,7 +386,9 @@ export default function RoomPage() {
             readyPlayers={readyPlayers}
             previousWinners={previousWinners}
             currentPlayerId={socket?.id}
+            hostId={hostId}
             onPlayerReady={handlePlayerReady}
+            onStartGame={handleStartGame}
           />
         ) : (
           <div className="space-y-6">

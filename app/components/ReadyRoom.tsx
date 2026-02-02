@@ -17,7 +17,9 @@ interface ReadyRoomProps {
   readyPlayers: Set<string>;
   previousWinners: Set<string>;
   currentPlayerId: string | undefined;
+  hostId: string | undefined;
   onPlayerReady: () => void;
+  onStartGame: () => void;
 }
 
 export default function ReadyRoom({
@@ -28,8 +30,15 @@ export default function ReadyRoom({
   readyPlayers,
   previousWinners,
   currentPlayerId,
+  hostId,
   onPlayerReady,
+  onStartGame,
 }: ReadyRoomProps) {
+  const isHost = currentPlayerId === hostId;
+  const allPlayersReady =
+    players.length >= MIN_PLAYERS &&
+    players.every((p) => readyPlayers.has(p.playerId));
+
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8">
       <h2 className="text-2xl font-bold mb-6">Waiting for Players...</h2>
@@ -69,6 +78,11 @@ export default function ReadyRoom({
                     🏆
                   </span>
                 )}
+                {player.playerId === hostId && (
+                  <span className="text-xl" title="Room Host">
+                    👑
+                  </span>
+                )}
                 {player.playerName}
               </span>
               <div className="flex items-center gap-2">
@@ -105,7 +119,15 @@ export default function ReadyRoom({
       )}
 
       <div className="border-t pt-6">
-        {!isReady ? (
+        {isHost && allPlayersReady ? (
+          <button
+            onClick={onStartGame}
+            disabled={!isConnected}
+            className="w-full bg-purple-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          >
+            Start Game
+          </button>
+        ) : !isReady ? (
           <button
             onClick={onPlayerReady}
             disabled={!isConnected || players.length < MIN_PLAYERS}
@@ -117,7 +139,9 @@ export default function ReadyRoom({
           <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4 text-center">
             <p className="text-green-700 font-semibold">✓ You're Ready!</p>
             <p className="text-green-600 text-sm mt-1">
-              Waiting for other players...
+              {isHost
+                ? "Waiting for all players to be ready..."
+                : "Waiting for host to start the game..."}
             </p>
           </div>
         )}

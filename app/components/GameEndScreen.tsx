@@ -7,6 +7,7 @@ import type { GameEndData } from "@/lib/socket/types";
 interface GameEndScreenProps {
   gameEndData: GameEndData;
   currentPlayerId: string | undefined;
+  hostId: string | undefined;
   socket: Socket | null;
   onPlayAgain: () => void;
 }
@@ -14,9 +15,12 @@ interface GameEndScreenProps {
 export default function GameEndScreen({
   gameEndData,
   currentPlayerId,
+  hostId,
   socket,
   onPlayAgain,
 }: GameEndScreenProps) {
+  const isHost = currentPlayerId === hostId;
+
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8">
       <div className="text-center mb-8">
@@ -66,17 +70,25 @@ export default function GameEndScreen({
         ))}
       </div>
 
-      <button
-        onClick={() => {
-          if (socket) {
-            socket.emit(GameEvents.PLAYER_READY);
-            onPlayAgain();
-          }
-        }}
-        className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-green-700 transition-colors"
-      >
-        Play Again
-      </button>
+      {isHost ? (
+        <button
+          onClick={() => {
+            if (socket) {
+              socket.emit(GameEvents.PLAYER_READY);
+              onPlayAgain();
+            }
+          }}
+          className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-green-700 transition-colors"
+        >
+          Play Again
+        </button>
+      ) : (
+        <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 text-center">
+          <p className="text-blue-700 font-semibold">
+            Waiting for host to start a new game...
+          </p>
+        </div>
+      )}
     </div>
   );
 }
