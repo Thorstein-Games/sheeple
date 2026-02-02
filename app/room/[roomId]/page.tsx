@@ -452,8 +452,8 @@ export default function RoomPage() {
                             {hasSubmitted ? "✓" : "○"}
                           </span>
                           <span className="text-sm truncate">
-                            {player.playerName}
-                            {player.playerId === socket?.id && " (You)"}
+                            {player?.playerName || "Unknown Player"}
+                            {player?.playerId === socket?.id && " (You)"}
                           </span>
                         </div>
                       );
@@ -480,7 +480,7 @@ export default function RoomPage() {
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <p className="font-semibold text-gray-900 flex items-center gap-2">
-                            {answer.playerName}
+                            {answer?.playerName || "Unknown Player"}
                             {answer.playerId === socket?.id && (
                               <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded">
                                 You

@@ -23,10 +23,10 @@ export default function GameEndScreen({
         <h1 className="text-4xl font-bold mb-4">🎉 Game Over! 🎉</h1>
         <div className="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl p-6 mb-6">
           <h2 className="text-3xl font-bold text-white mb-2">
-            Winner: {gameEndData.winner.playerName}
+            Winner: {gameEndData.winner?.playerName || "Unknown"}
           </h2>
           <p className="text-2xl text-white font-semibold">
-            {gameEndData.winner.score} points
+            {gameEndData.winner?.score || 0} points
           </p>
         </div>
       </div>
@@ -35,15 +35,15 @@ export default function GameEndScreen({
         <h3 className="text-xl font-semibold mb-4">Final Scores</h3>
         {gameEndData.players.map((player, index) => (
           <div
-            key={player.playerId}
+            key={player?.playerId || index}
             className={`flex justify-between items-center p-4 rounded-lg ${
               index === 0
                 ? "bg-gradient-to-r from-yellow-100 to-yellow-200 border-2 border-yellow-400"
                 : index === 1
-                ? "bg-gradient-to-r from-gray-100 to-gray-200 border-2 border-gray-400"
-                : index === 2
-                ? "bg-gradient-to-r from-orange-100 to-orange-200 border-2 border-orange-400"
-                : "bg-gray-50 border-2 border-gray-200"
+                  ? "bg-gradient-to-r from-gray-100 to-gray-200 border-2 border-gray-400"
+                  : index === 2
+                    ? "bg-gradient-to-r from-orange-100 to-orange-200 border-2 border-orange-400"
+                    : "bg-gray-50 border-2 border-gray-200"
             }`}
           >
             <div className="flex items-center gap-3">
@@ -51,8 +51,8 @@ export default function GameEndScreen({
                 #{index + 1}
               </span>
               <span className="font-semibold text-lg">
-                {player.playerName}
-                {player.playerId === currentPlayerId && (
+                {player?.playerName || "Unknown Player"}
+                {player?.playerId === currentPlayerId && (
                   <span className="ml-2 text-sm bg-blue-600 text-white px-2 py-1 rounded">
                     You
                   </span>
@@ -60,7 +60,7 @@ export default function GameEndScreen({
               </span>
             </div>
             <span className="text-2xl font-bold text-gray-900">
-              {player.score} pts
+              {player?.score || 0} pts
             </span>
           </div>
         ))}
