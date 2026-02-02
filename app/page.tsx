@@ -16,7 +16,7 @@ export default function Home() {
     if (playerName && !playerNameInput) {
       setPlayerNameInput(playerName);
     }
-  }, [playerName, playerNameInput]);
+  }, [playerName]);
 
   const handleStartGame = () => {
     if (!playerNameInput.trim()) return;
@@ -59,7 +59,7 @@ export default function Home() {
                 type="text"
                 value={playerNameInput}
                 onChange={(e) => setPlayerNameInput(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleStartGame()}
+                onKeyDown={(e) => e.key === "Enter" && handleStartGame()}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
                 placeholder="Your name"
                 autoFocus
