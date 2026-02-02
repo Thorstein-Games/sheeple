@@ -10,6 +10,7 @@ import CountdownTimer from "@/app/components/CountdownTimer";
 import Chat from "@/app/components/Chat";
 import type {
   PlayerJoinedData,
+  PlayerReconnectedData,
   GameStartData,
   RoundStartData,
   RevealAnswersData,
@@ -115,6 +116,44 @@ export default function RoomPage() {
       });
     };
 
+    const handlePlayerReconnected = (data: {
+      oldPlayerId: string;
+      newPlayerId: string;
+      playerName: string;
+    }) => {
+      console.log("Player reconnected:", data);
+      // Update player ID for the reconnected player
+      setPlayers((currentPlayers) =>
+        currentPlayers.map((p) =>
+          p.playerId === data.oldPlayerId
+            ? { ...p, playerId: data.newPlayerId }
+            : p,
+        ),
+      );
+
+      // Update ready players set if needed
+      setReadyPlayers((prev) => {
+        if (prev.has(data.oldPlayerId)) {
+          const newSet = new Set(prev);
+          newSet.delete(data.oldPlayerId);
+          newSet.add(data.newPlayerId);
+          return newSet;
+        }
+        return prev;
+      });
+
+      // Update submitted players set if needed
+      setSubmittedPlayers((prev) => {
+        if (prev.has(data.oldPlayerId)) {
+          const newSet = new Set(prev);
+          newSet.delete(data.oldPlayerId);
+          newSet.add(data.newPlayerId);
+          return newSet;
+        }
+        return prev;
+      });
+    };
+
     const handleRoomState = (data: RoomStateData) => {
       setPlayers(
         data.players.map((p) => ({
@@ -155,6 +194,7 @@ export default function RoomPage() {
     };
 
     socket.on(GameEvents.PLAYER_JOINED, handlePlayerJoined);
+    socket.on(GameEvents.PLAYER_RECONNECTED, handlePlayerReconnected);
     socket.on(GameEvents.ROOM_STATE, handleRoomState);
     socket.on(GameEvents.PLAYER_READY_STATUS, handlePlayerReadyStatus);
     socket.on(GameEvents.PLAYER_LEFT, handlePlayerLeft);
@@ -211,6 +251,7 @@ export default function RoomPage() {
 
     return () => {
       socket.off(GameEvents.PLAYER_JOINED);
+      socket.off(GameEvents.PLAYER_RECONNECTED);
       socket.off(GameEvents.ROOM_STATE);
       socket.off(GameEvents.PLAYER_LEFT);
       socket.off(GameEvents.GAME_START);

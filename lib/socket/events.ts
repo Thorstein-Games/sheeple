@@ -2,6 +2,7 @@ export enum GameEvents {
   // Connection events
   JOIN_GAME = "join_game",
   PLAYER_JOINED = "player_joined",
+  PLAYER_RECONNECTED = "player_reconnected",
   PLAYER_LEFT = "player_left",
   ROOM_STATE = "room_state",
   GET_ROOMS = "get_rooms",

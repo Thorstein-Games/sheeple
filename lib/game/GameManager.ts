@@ -77,19 +77,68 @@ export class GameManager {
     roomId: string,
     playerId: string,
     playerName: string,
-    isPrivate: boolean = false
-  ): boolean {
+    isPrivate: boolean = false,
+  ): { added: boolean; isReconnect: boolean; oldPlayerId?: string } {
     let room = this.getRoom(roomId);
     if (!room) {
       room = this.createRoom(roomId, isPrivate);
     }
 
-    // Check if player already exists
+    // Check if player already exists by socket ID
     if (room.players.has(playerId)) {
       console.log(`Player ${playerId} already in room ${roomId}`);
-      return false;
+      return { added: false, isReconnect: false };
     }
 
+    // Check if a player with the same name already exists (reconnection scenario)
+    const existingPlayer = Array.from(room.players.values()).find(
+      (p) => p.playerName === playerName,
+    );
+
+    if (existingPlayer) {
+      console.log(
+        `Player "${playerName}" reconnecting to room ${roomId}. Updating socket ID from ${existingPlayer.playerId} to ${playerId}`,
+      );
+      const oldPlayerId = existingPlayer.playerId;
+
+      // Remove old player entry
+      room.players.delete(oldPlayerId);
+      const oldScore = room.scores.get(oldPlayerId) || 0;
+      room.scores.delete(oldPlayerId);
+
+      // Transfer answer data if it exists
+      const oldAnswer = room.answers.get(oldPlayerId);
+      const oldOriginalAnswer = room.originalAnswers.get(oldPlayerId);
+      const wasSubmitted = room.submittedPlayers.has(oldPlayerId);
+
+      if (oldAnswer) {
+        room.answers.delete(oldPlayerId);
+        room.answers.set(playerId, oldAnswer);
+      }
+      if (oldOriginalAnswer) {
+        room.originalAnswers.delete(oldPlayerId);
+        room.originalAnswers.set(playerId, oldOriginalAnswer);
+      }
+      if (wasSubmitted) {
+        room.submittedPlayers.delete(oldPlayerId);
+        room.submittedPlayers.add(playerId);
+      }
+
+      // Add player with new socket ID but preserve their data
+      const player: Player = {
+        playerId,
+        playerName,
+        isReady: existingPlayer.isReady,
+        score: existingPlayer.score,
+        answer: existingPlayer.answer,
+      };
+
+      room.players.set(playerId, player);
+      room.scores.set(playerId, oldScore);
+      return { added: true, isReconnect: true, oldPlayerId };
+    }
+
+    // New player joining
     const player: Player = {
       playerId,
       playerName,
@@ -99,7 +148,7 @@ export class GameManager {
 
     room.players.set(playerId, player);
     room.scores.set(playerId, 0);
-    return true;
+    return { added: true, isReconnect: false };
   }
 
   removePlayer(roomId: string, playerId: string): void {
@@ -195,7 +244,7 @@ export class GameManager {
     });
 
     console.log(
-      `Round ${room.currentRound} started in room ${roomId}: ${room.currentPrompt}`
+      `Round ${room.currentRound} started in room ${roomId}: ${room.currentPrompt}`,
     );
 
     // Set server-side timer to auto-reveal answers after time limit
@@ -203,7 +252,7 @@ export class GameManager {
       // Small delay to give players a little buffer
       setTimeout(() => {
         console.log(
-          `Time's up for round ${room.currentRound} in room ${roomId}`
+          `Time's up for round ${room.currentRound} in room ${roomId}`,
         );
         // Only reveal if we haven't already (e.g., all players submitted early)
         if (room.currentRound > 0 && !room.waitingForNextRound) {
@@ -275,7 +324,7 @@ export class GameManager {
     room.answers.forEach((normalizedAnswer, playerId) => {
       answerCounts.set(
         normalizedAnswer,
-        (answerCounts.get(normalizedAnswer) || 0) + 1
+        (answerCounts.get(normalizedAnswer) || 0) + 1,
       );
       if (!answerPlayers.has(normalizedAnswer)) {
         answerPlayers.set(normalizedAnswer, []);
@@ -312,7 +361,7 @@ export class GameManager {
           count,
           points: count > 1 ? Math.min(count, 3) : 0, // Cap displayed points at 3
         };
-      }
+      },
     );
 
     this.io.to(roomId).emit(GameEvents.REVEAL_ANSWERS, {
@@ -389,7 +438,7 @@ export class GameManager {
     });
 
     console.log(
-      `Game ended in room ${roomId}. Winner: ${players[0]?.playerName}`
+      `Game ended in room ${roomId}. Winner: ${players[0]?.playerName}`,
     );
 
     // Reset game state

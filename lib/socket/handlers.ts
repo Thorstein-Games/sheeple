@@ -21,7 +21,7 @@ export function setupSocketHandlers(io: SocketIOServer) {
       GameEvents.JOIN_GAME,
       (data: { playerName: string; roomId?: string }) => {
         handleJoinGame(io, socket, data);
-      }
+      },
     );
 
     // Handle player ready
@@ -74,7 +74,7 @@ function handleGetRooms(io: SocketIOServer, socket: Socket) {
 function handleJoinGame(
   io: SocketIOServer,
   socket: Socket,
-  data: { playerName: string; roomId?: string; isPrivate?: boolean }
+  data: { playerName: string; roomId?: string; isPrivate?: boolean },
 ) {
   const { playerName, roomId, isPrivate = false } = data;
 
@@ -82,7 +82,7 @@ function handleJoinGame(
 
   if (socket.data.roomId === room) {
     console.log(
-      `Player ${socket.id} already in room ${room}, sending room state`
+      `Player ${socket.id} already in room ${room}, sending room state`,
     );
 
     // Send current room state with all players
@@ -115,11 +115,11 @@ function handleJoinGame(
   socket.data.playerName = playerName;
   socket.data.roomId = room;
 
-  const added = gameManager.addPlayer(room, socket.id, playerName, isPrivate);
+  const result = gameManager.addPlayer(room, socket.id, playerName, isPrivate);
 
-  if (!added) {
+  if (!result.added) {
     console.log(
-      `Player ${socket.id} already exists in game manager, sending room state`
+      `Player ${socket.id} already exists in game manager, sending room state`,
     );
 
     // Send current room state
@@ -138,14 +138,24 @@ function handleJoinGame(
     return;
   }
 
-  // Notify OTHER players in room about new player
-  socket.to(room).emit(GameEvents.PLAYER_JOINED, {
-    playerId: socket.id,
-    playerName,
-    roomId: room,
-  });
+  if (result.isReconnect) {
+    // Player is reconnecting - notify other players to update their player ID mapping
+    console.log(`${playerName} reconnected to room ${room}`);
+    socket.to(room).emit(GameEvents.PLAYER_RECONNECTED, {
+      oldPlayerId: result.oldPlayerId,
+      newPlayerId: socket.id,
+      playerName,
+    });
+  } else {
+    // New player joining - notify OTHER players
+    socket.to(room).emit(GameEvents.PLAYER_JOINED, {
+      playerId: socket.id,
+      playerName,
+      roomId: room,
+    });
+  }
 
-  // Send full room state to the joining player
+  // Send full room state to the joining/reconnecting player
   const roomState = gameManager.getRoomState(room);
   if (roomState) {
     socket.emit(GameEvents.ROOM_STATE, {
@@ -162,7 +172,7 @@ function handleJoinGame(
   console.log(
     `${playerName} joined room ${room} (${
       currentPlayerCount + 1
-    }/${MAX_PLAYERS} players)`
+    }/${MAX_PLAYERS} players)`,
   );
 }
 
@@ -202,7 +212,7 @@ function handlePlayerReady(io: SocketIOServer, socket: Socket) {
 function handleSubmitAnswer(
   io: SocketIOServer,
   socket: Socket,
-  data: { answer: string }
+  data: { answer: string },
 ) {
   const room = socket.data.roomId;
 
@@ -235,7 +245,7 @@ function handleSubmitAnswer(
 function handleSaveAnswerDraft(
   io: SocketIOServer,
   socket: Socket,
-  data: { answer: string }
+  data: { answer: string },
 ) {
   const room = socket.data.roomId;
 
@@ -253,7 +263,7 @@ function handleSaveAnswerDraft(
   }
 
   console.log(
-    `Draft answer saved for player ${socket.data.playerName} in room ${room}: "${data.answer}"`
+    `Draft answer saved for player ${socket.data.playerName} in room ${room}: "${data.answer}"`,
   );
 }
 
@@ -322,7 +332,7 @@ function handleDisconnect(io: SocketIOServer, socket: Socket) {
 function handleSendMessage(
   io: SocketIOServer,
   socket: Socket,
-  data: { message: string }
+  data: { message: string },
 ) {
   const room = socket.data.roomId;
   const playerName = socket.data.playerName;

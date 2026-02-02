@@ -12,6 +12,12 @@ export interface PlayerJoinedData {
   roomId: string;
 }
 
+export interface PlayerReconnectedData {
+  oldPlayerId: string;
+  newPlayerId: string;
+  playerName: string;
+}
+
 export interface PlayerLeftData {
   playerId: string;
   playerName: string;
