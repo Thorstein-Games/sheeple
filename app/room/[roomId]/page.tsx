@@ -45,22 +45,16 @@ export default function RoomPage() {
   const [hasJoined, setHasJoined] = useState(false);
   const [readyPlayers, setReadyPlayers] = useState<Set<string>>(new Set());
   const [previousWinners, setPreviousWinners] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [submittedPlayers, setSubmittedPlayers] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [showNextRoundButton, setShowNextRoundButton] = useState(false);
   const [totalRounds, setTotalRounds] = useState(5);
 
   // Ref to store the debounce timer
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    if (!contextPlayerName) {
-      router.push("/");
-    }
-  }, [contextPlayerName, router]);
 
   // Debounced auto-save effect for player answer
   useEffect(() => {
@@ -127,7 +121,7 @@ export default function RoomPage() {
           playerId: p.playerId,
           playerName: p.playerName,
           isReady: p.isReady,
-        }))
+        })),
       );
 
       const readyPlayerIds = data.players
@@ -151,7 +145,7 @@ export default function RoomPage() {
     const handlePlayerLeft = (data: { playerId: string }) => {
       console.log("Player left:", data);
       setPlayers((currentPlayers) =>
-        currentPlayers.filter((p) => p.playerId !== data.playerId)
+        currentPlayers.filter((p) => p.playerId !== data.playerId),
       );
       setReadyPlayers((prev) => {
         const newSet = new Set(prev);
@@ -402,7 +396,7 @@ export default function RoomPage() {
                   <div className="grid grid-cols-2 gap-2">
                     {players.map((player) => {
                       const hasSubmitted = submittedPlayers.has(
-                        player.playerId
+                        player.playerId,
                       );
                       return (
                         <div
@@ -485,7 +479,7 @@ export default function RoomPage() {
                         .sort(([, a], [, b]) => b - a)
                         .map(([playerId, score]) => {
                           const player = players.find(
-                            (p) => p.playerId === playerId
+                            (p) => p.playerId === playerId,
                           );
                           return (
                             <div
