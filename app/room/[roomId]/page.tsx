@@ -564,14 +564,21 @@ export default function RoomPage() {
 
                 {showNextRoundButton &&
                   currentRound &&
-                  currentRound.roundNumber < totalRounds && (
+                  currentRound.roundNumber < totalRounds &&
+                  (socket?.id === hostId ? (
                     <button
                       onClick={handleNextRound}
                       className="w-full mt-6 bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors"
                     >
                       Next Round →
                     </button>
-                  )}
+                  ) : (
+                    <div className="w-full mt-6 bg-gray-100 border-2 border-gray-300 rounded-lg p-4 text-center">
+                      <p className="text-gray-600 font-semibold">
+                        Waiting for host to start next round...
+                      </p>
+                    </div>
+                  ))}
               </div>
             )}
           </div>

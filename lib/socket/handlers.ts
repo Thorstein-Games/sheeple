@@ -321,6 +321,21 @@ function handleNextRound(io: SocketIOServer, socket: Socket) {
     return;
   }
 
+  // Get room state to check if player is host
+  const roomState = gameManager.getRoomState(room);
+  if (!roomState) {
+    socket.emit(GameEvents.ERROR, { message: "Room not found" });
+    return;
+  }
+
+  // Verify the player is the host
+  if (roomState.hostId !== socket.id) {
+    socket.emit(GameEvents.ERROR, {
+      message: "Only the host can start the next round",
+    });
+    return;
+  }
+
   // Start the next round
   const success = gameManager.startNextRound(room);
 
