@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { SocketProvider } from "@/lib/socket";
 import { Navbar } from "./components/Navbar";
@@ -30,6 +31,18 @@ export default function RootLayout({
         />
       </head>
       <body className="flex flex-col min-h-screen">
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-HE8WYT78H8"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-HE8WYT78H8');
+          `}
+        </Script>
         <SocketProvider>
           <Navbar />
           <main className="flex-1">{children}</main>
