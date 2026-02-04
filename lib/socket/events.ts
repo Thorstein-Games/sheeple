@@ -4,6 +4,7 @@ export enum GameEvents {
   PLAYER_JOINED = "player_joined",
   PLAYER_RECONNECTED = "player_reconnected",
   PLAYER_LEFT = "player_left",
+  HOST_CHANGED = "host_changed",
   ROOM_STATE = "room_state",
   GET_ROOMS = "get_rooms",
   ROOMS_LIST = "rooms_list",
@@ -11,6 +12,7 @@ export enum GameEvents {
   // Game state events
   PLAYER_READY = "player_ready",
   PLAYER_READY_STATUS = "player_ready_status",
+  START_GAME = "start_game",
   GAME_START = "game_start",
   GAME_END = "game_end",
 
@@ -33,6 +35,9 @@ export enum GameEvents {
   // Chat events
   SEND_MESSAGE = "send_message",
   NEW_MESSAGE = "new_message",
+
+  // Dev mode events
+  ADD_FAKE_PLAYER = "add_fake_player",
 
   // Error events
   ERROR = "error",

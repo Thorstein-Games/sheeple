@@ -88,7 +88,7 @@ export default function Chat({ roomId }: ChatProps) {
             <h3 className="font-semibold text-lg">Room Chat</h3>
             <button
               onClick={handleToggleChat}
-              className="hover:bg-blue-700 rounded p-1 transition-colors"
+              className="hover:bg-blue-500 rounded p-1 transition-colors"
               aria-label="Close chat"
             >
               <svg
@@ -161,7 +161,7 @@ export default function Chat({ roomId }: ChatProps) {
               <button
                 type="submit"
                 disabled={!message.trim()}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
                 Send
               </button>
@@ -173,7 +173,7 @@ export default function Chat({ roomId }: ChatProps) {
       {/* Chat Bubble Button */}
       <button
         onClick={handleToggleChat}
-        className="relative w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-all duration-200 hover:scale-110 flex items-center justify-center"
+        className="relative w-14 h-14 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg transition-all duration-200 hover:scale-110 flex items-center justify-center"
         aria-label="Toggle chat"
       >
         {/* Unread indicator */}

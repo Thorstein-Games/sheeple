@@ -23,6 +23,11 @@ export interface PlayerLeftData {
   playerName: string;
 }
 
+export interface HostChangedData {
+  newHostId: string;
+  newHostName: string;
+}
+
 export interface PlayerReadyStatusData {
   playerId: string;
   playerName: string;
@@ -97,6 +102,7 @@ export interface RoomStateData {
     isReady: boolean;
   }>;
   roomId: string;
+  hostId?: string; // The player ID of the room host
   previousWinners?: string[]; // Array of player IDs who won the previous game
 }
 

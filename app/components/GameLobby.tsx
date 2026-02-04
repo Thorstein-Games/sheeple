@@ -142,13 +142,13 @@ export function GameLobby({ playerName }: GameLobbyProps) {
             <button
               onClick={() => handleJoinGame()}
               disabled={!isConnected}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="w-full bg-blue-700 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               {roomId
                 ? `Join Room ${roomId}`
                 : isPrivate
-                ? "Create Private Room"
-                : "Create Public Room"}
+                  ? "Create Private Room"
+                  : "Create Public Room"}
             </button>
           </div>
         </div>
@@ -197,15 +197,15 @@ export function GameLobby({ playerName }: GameLobbyProps) {
                     room.isGameStarted ||
                     room.isPrivate
                   }
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
                   {room.isPrivate
                     ? "Private"
                     : room.isGameStarted
-                    ? "In Progress"
-                    : room.playerCount >= room.maxPlayers
-                    ? "Full"
-                    : "Join"}
+                      ? "In Progress"
+                      : room.playerCount >= room.maxPlayers
+                        ? "Full"
+                        : "Join"}
                 </button>
               </div>
             ))}

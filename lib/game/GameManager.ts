@@ -14,6 +14,7 @@ export interface Player {
 export interface GameRoom {
   roomId: string;
   players: Map<string, Player>;
+  hostId: string; // The player ID of the room host
   isGameStarted: boolean;
   isPrivate: boolean;
   currentRound: number;
@@ -52,6 +53,7 @@ export class GameManager {
     const room: GameRoom = {
       roomId,
       players: new Map(),
+      hostId: "", // Will be set when first player joins
       isGameStarted: false,
       isPrivate,
       currentRound: 0,
@@ -148,12 +150,23 @@ export class GameManager {
 
     room.players.set(playerId, player);
     room.scores.set(playerId, 0);
+
+    // Set as host if they're the first player
+    if (room.players.size === 1) {
+      room.hostId = playerId;
+      console.log(
+        `Player ${playerName} (${playerId}) is now the host of room ${roomId}`,
+      );
+    }
+
     return { added: true, isReconnect: false };
   }
 
-  removePlayer(roomId: string, playerId: string): void {
+  removePlayer(roomId: string, playerId: string): { newHostId?: string } {
     const room = this.getRoom(roomId);
-    if (!room) return;
+    if (!room) return {};
+
+    const wasHost = room.hostId === playerId;
 
     room.players.delete(playerId);
     room.scores.delete(playerId);
@@ -168,7 +181,21 @@ export class GameManager {
         room.roundTimer = undefined;
       }
       this.rooms.delete(roomId);
+      return {};
     }
+
+    // Reassign host if the host left
+    if (wasHost) {
+      const newHost = Array.from(room.players.keys())[0];
+      room.hostId = newHost;
+      const newHostPlayer = room.players.get(newHost);
+      console.log(
+        `Host left room ${roomId}. New host: ${newHostPlayer?.playerName} (${newHost})`,
+      );
+      return { newHostId: newHost };
+    }
+
+    return {};
   }
 
   setPlayerReady(roomId: string, playerId: string, ready: boolean): boolean {
@@ -455,6 +482,7 @@ export class GameManager {
     // Broadcast updated room state to all players in the room
     this.io.to(roomId).emit(GameEvents.ROOM_STATE, {
       roomId: room.roomId,
+      hostId: room.hostId,
       players: Array.from(room.players.values()).map((p) => ({
         playerId: p.playerId,
         playerName: p.playerName,
@@ -485,6 +513,7 @@ export class GameManager {
     return {
       roomId: room.roomId,
       playerCount: room.players.size,
+      hostId: room.hostId,
       isGameStarted: room.isGameStarted,
       currentRound: room.currentRound,
       totalRounds: room.totalRounds,

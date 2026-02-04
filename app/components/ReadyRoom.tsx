@@ -2,6 +2,7 @@
 
 import type { Socket } from "socket.io-client";
 import { MIN_PLAYERS, MAX_PLAYERS } from "@/lib/constants";
+import { GameEvents } from "@/lib/socket/events";
 
 interface Player {
   playerId: string;
@@ -17,7 +18,10 @@ interface ReadyRoomProps {
   readyPlayers: Set<string>;
   previousWinners: Set<string>;
   currentPlayerId: string | undefined;
+  hostId: string | undefined;
+  socket: Socket | null;
   onPlayerReady: () => void;
+  onStartGame: () => void;
 }
 
 export default function ReadyRoom({
@@ -28,8 +32,24 @@ export default function ReadyRoom({
   readyPlayers,
   previousWinners,
   currentPlayerId,
+  hostId,
+  socket,
   onPlayerReady,
+  onStartGame,
 }: ReadyRoomProps) {
+  const isHost = currentPlayerId === hostId;
+  const allPlayersReady =
+    players.length >= MIN_PLAYERS &&
+    players.every((p) => readyPlayers.has(p.playerId));
+
+  const isDev = process.env.NODE_ENV === "development";
+
+  const handleAddFakePlayer = () => {
+    if (socket && isDev) {
+      socket.emit(GameEvents.ADD_FAKE_PLAYER, { count: 1 });
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8">
       <h2 className="text-2xl font-bold mb-6">Waiting for Players...</h2>
@@ -69,6 +89,11 @@ export default function ReadyRoom({
                     🏆
                   </span>
                 )}
+                {player.playerId === hostId && (
+                  <span className="text-xl" title="Room Host">
+                    👑
+                  </span>
+                )}
                 {player.playerName}
               </span>
               <div className="flex items-center gap-2">
@@ -104,12 +129,27 @@ export default function ReadyRoom({
         </div>
       )}
 
+      {isDev && players.length < MAX_PLAYERS && (
+        <div className="mb-6 p-3 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-yellow-800 font-semibold">🔧 Dev Mode</p>
+            <button
+              onClick={handleAddFakePlayer}
+              disabled={!isConnected}
+              className="bg-yellow-600 text-white px-3 py-1 rounded text-sm font-medium hover:bg-yellow-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            >
+              + Add Fake Player
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="border-t pt-6">
         {!isReady ? (
           <button
             onClick={onPlayerReady}
             disabled={!isConnected || players.length < MIN_PLAYERS}
-            className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
             Ready
           </button>
@@ -117,7 +157,9 @@ export default function ReadyRoom({
           <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4 text-center">
             <p className="text-green-700 font-semibold">✓ You're Ready!</p>
             <p className="text-green-600 text-sm mt-1">
-              Waiting for other players...
+              {isHost
+                ? "Waiting for all players to be ready..."
+                : "Waiting for host to start the game..."}
             </p>
           </div>
         )}
@@ -125,6 +167,15 @@ export default function ReadyRoom({
           <p className="text-sm text-gray-600 text-center mt-2">
             Ready button will be enabled once {MIN_PLAYERS} players join
           </p>
+        )}
+        {isHost && allPlayersReady && (
+          <button
+            onClick={onStartGame}
+            disabled={!isConnected}
+            className="w-full bg-blue-700 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors mt-8"
+          >
+            Start Game
+          </button>
         )}
       </div>
     </div>

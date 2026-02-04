@@ -2,6 +2,7 @@ import { Server as SocketIOServer, Socket } from "socket.io";
 import { GameEvents } from "./events";
 import { MIN_PLAYERS, MAX_PLAYERS } from "../constants";
 import { GameManager } from "../game/GameManager";
+import { handleAddFakePlayer } from "../game/devMode";
 
 let gameManager: GameManager;
 
@@ -29,6 +30,11 @@ export function setupSocketHandlers(io: SocketIOServer) {
       handlePlayerReady(io, socket);
     });
 
+    // Handle start game (host only)
+    socket.on(GameEvents.START_GAME, () => {
+      handleStartGame(io, socket);
+    });
+
     // Handle answer submission
     socket.on(GameEvents.SUBMIT_ANSWER, (data: { answer: string }) => {
       handleSubmitAnswer(io, socket, data);
@@ -52,6 +58,11 @@ export function setupSocketHandlers(io: SocketIOServer) {
     // Handle chat messages
     socket.on(GameEvents.SEND_MESSAGE, (data: { message: string }) => {
       handleSendMessage(io, socket, data);
+    });
+
+    // Handle adding fake players (dev mode only)
+    socket.on(GameEvents.ADD_FAKE_PLAYER, (data: { count?: number }) => {
+      handleAddFakePlayer(io, socket, data);
     });
 
     // Handle disconnect
@@ -90,6 +101,7 @@ function handleJoinGame(
     if (roomState) {
       socket.emit(GameEvents.ROOM_STATE, {
         roomId: roomState.roomId,
+        hostId: roomState.hostId,
         players: roomState.players.map((p) => ({
           playerId: p.playerId,
           playerName: p.playerName,
@@ -127,6 +139,7 @@ function handleJoinGame(
     if (roomState) {
       socket.emit(GameEvents.ROOM_STATE, {
         roomId: roomState.roomId,
+        hostId: roomState.hostId,
         players: roomState.players.map((p) => ({
           playerId: p.playerId,
           playerName: p.playerName,
@@ -160,6 +173,7 @@ function handleJoinGame(
   if (roomState) {
     socket.emit(GameEvents.ROOM_STATE, {
       roomId: roomState.roomId,
+      hostId: roomState.hostId,
       players: roomState.players,
       previousWinners: roomState.previousWinners,
     });
@@ -184,6 +198,41 @@ function handlePlayerReady(io: SocketIOServer, socket: Socket) {
     return;
   }
 
+  // Mark player as ready
+  gameManager.setPlayerReady(room, socket.id, true);
+
+  // Broadcast ready status to room
+  io.to(room).emit(GameEvents.PLAYER_READY_STATUS, {
+    playerId: socket.id,
+    playerName: socket.data.playerName,
+  });
+
+  // Note: Game is now started by the host using START_GAME event
+}
+
+function handleStartGame(io: SocketIOServer, socket: Socket) {
+  const room = socket.data.roomId;
+
+  if (!room) {
+    socket.emit(GameEvents.ERROR, { message: "Not in a room" });
+    return;
+  }
+
+  // Get room state to check if player is host
+  const roomState = gameManager.getRoomState(room);
+  if (!roomState) {
+    socket.emit(GameEvents.ERROR, { message: "Room not found" });
+    return;
+  }
+
+  // Verify the player is the host
+  if (roomState.hostId !== socket.id) {
+    socket.emit(GameEvents.ERROR, {
+      message: "Only the host can start the game",
+    });
+    return;
+  }
+
   // Check if minimum players requirement is met
   const currentPlayerCount = gameManager.getPlayerCount(room);
 
@@ -194,19 +243,16 @@ function handlePlayerReady(io: SocketIOServer, socket: Socket) {
     return;
   }
 
-  // Mark player as ready
-  gameManager.setPlayerReady(room, socket.id, true);
-
-  // Broadcast ready status to room
-  io.to(room).emit(GameEvents.PLAYER_READY_STATUS, {
-    playerId: socket.id,
-    playerName: socket.data.playerName,
-  });
-
   // Check if all players are ready
-  if (gameManager.areAllPlayersReady(room)) {
-    gameManager.startGame(room);
+  if (!gameManager.areAllPlayersReady(room)) {
+    socket.emit(GameEvents.ERROR, {
+      message: "All players must be ready before starting",
+    });
+    return;
   }
+
+  // Start the game
+  gameManager.startGame(room);
 }
 
 function handleSubmitAnswer(
@@ -275,6 +321,21 @@ function handleNextRound(io: SocketIOServer, socket: Socket) {
     return;
   }
 
+  // Get room state to check if player is host
+  const roomState = gameManager.getRoomState(room);
+  if (!roomState) {
+    socket.emit(GameEvents.ERROR, { message: "Room not found" });
+    return;
+  }
+
+  // Verify the player is the host
+  if (roomState.hostId !== socket.id) {
+    socket.emit(GameEvents.ERROR, {
+      message: "Only the host can start the next round",
+    });
+    return;
+  }
+
   // Start the next round
   const success = gameManager.startNextRound(room);
 
@@ -313,13 +374,26 @@ function handleDisconnect(io: SocketIOServer, socket: Socket) {
 
   if (room) {
     // Remove player from game manager
-    gameManager.removePlayer(room, socket.id);
+    const result = gameManager.removePlayer(room, socket.id);
 
     // Notify players in the room
     io.to(room).emit(GameEvents.PLAYER_LEFT, {
       playerId: socket.id,
       playerName,
     });
+
+    // If host changed, notify all players in the room
+    if (result.newHostId) {
+      const newHost = gameManager
+        .getPlayers(room)
+        .find((p) => p.playerId === result.newHostId);
+      if (newHost) {
+        io.to(room).emit(GameEvents.HOST_CHANGED, {
+          newHostId: result.newHostId,
+          newHostName: newHost.playerName,
+        });
+      }
+    }
 
     // Broadcast updated rooms list to all connected clients (for lobby)
     const rooms = gameManager.getAllRooms();

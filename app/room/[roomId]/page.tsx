@@ -18,6 +18,7 @@ import type {
   GameEndData,
   RoomStateData,
   AnswerSubmittedData,
+  HostChangedData,
 } from "@/lib/socket/types";
 
 export default function RoomPage() {
@@ -53,6 +54,7 @@ export default function RoomPage() {
   );
   const [showNextRoundButton, setShowNextRoundButton] = useState(false);
   const [totalRounds, setTotalRounds] = useState(5);
+  const [hostId, setHostId] = useState<string | undefined>(undefined);
 
   // Ref to store the debounce timer
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -168,6 +170,11 @@ export default function RoomPage() {
         .map((p) => p.playerId);
       setReadyPlayers(new Set(readyPlayerIds));
 
+      // Update host ID
+      if (data.hostId) {
+        setHostId(data.hostId);
+      }
+
       // Update previous winners
       if (data.previousWinners && data.previousWinners.length > 0) {
         setPreviousWinners(new Set(data.previousWinners));
@@ -193,11 +200,20 @@ export default function RoomPage() {
       });
     };
 
+    const handleHostChanged = (data: {
+      newHostId: string;
+      newHostName: string;
+    }) => {
+      console.log("Host changed:", data);
+      setHostId(data.newHostId);
+    };
+
     socket.on(GameEvents.PLAYER_JOINED, handlePlayerJoined);
     socket.on(GameEvents.PLAYER_RECONNECTED, handlePlayerReconnected);
     socket.on(GameEvents.ROOM_STATE, handleRoomState);
     socket.on(GameEvents.PLAYER_READY_STATUS, handlePlayerReadyStatus);
     socket.on(GameEvents.PLAYER_LEFT, handlePlayerLeft);
+    socket.on(GameEvents.HOST_CHANGED, handleHostChanged);
 
     socket.on(GameEvents.GAME_START, (data: GameStartData) => {
       console.log("Game starting:", data);
@@ -254,6 +270,7 @@ export default function RoomPage() {
       socket.off(GameEvents.PLAYER_RECONNECTED);
       socket.off(GameEvents.ROOM_STATE);
       socket.off(GameEvents.PLAYER_LEFT);
+      socket.off(GameEvents.HOST_CHANGED);
       socket.off(GameEvents.GAME_START);
       socket.off(GameEvents.ROUND_START);
       socket.off(GameEvents.ANSWER_SUBMITTED);
@@ -270,6 +287,11 @@ export default function RoomPage() {
     socket.emit(GameEvents.PLAYER_READY);
     setIsReady(true);
     setReadyPlayers((prev) => new Set(prev).add(socket.id!));
+  };
+
+  const handleStartGame = () => {
+    if (!socket) return;
+    socket.emit(GameEvents.START_GAME);
   };
 
   const handleSubmitAnswer = () => {
@@ -351,6 +373,7 @@ export default function RoomPage() {
           <GameEndScreen
             gameEndData={gameEndData}
             currentPlayerId={socket?.id}
+            hostId={hostId}
             socket={socket}
             onPlayAgain={handlePlayAgain}
           />
@@ -363,7 +386,10 @@ export default function RoomPage() {
             readyPlayers={readyPlayers}
             previousWinners={previousWinners}
             currentPlayerId={socket?.id}
+            hostId={hostId}
+            socket={socket}
             onPlayerReady={handlePlayerReady}
+            onStartGame={handleStartGame}
           />
         ) : (
           <div className="space-y-6">
@@ -412,7 +438,7 @@ export default function RoomPage() {
                     <button
                       onClick={handleSubmitAnswer}
                       disabled={!playerAnswer.trim()}
-                      className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                      className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                     >
                       Submit Answer
                     </button>
@@ -452,8 +478,8 @@ export default function RoomPage() {
                             {hasSubmitted ? "✓" : "○"}
                           </span>
                           <span className="text-sm truncate">
-                            {player.playerName}
-                            {player.playerId === socket?.id && " (You)"}
+                            {player?.playerName || "Unknown Player"}
+                            {player?.playerId === socket?.id && " (You)"}
                           </span>
                         </div>
                       );
@@ -480,7 +506,7 @@ export default function RoomPage() {
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <p className="font-semibold text-gray-900 flex items-center gap-2">
-                            {answer.playerName}
+                            {answer?.playerName || "Unknown Player"}
                             {answer.playerId === socket?.id && (
                               <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded">
                                 You
@@ -538,14 +564,21 @@ export default function RoomPage() {
 
                 {showNextRoundButton &&
                   currentRound &&
-                  currentRound.roundNumber < totalRounds && (
+                  currentRound.roundNumber < totalRounds &&
+                  (socket?.id === hostId ? (
                     <button
                       onClick={handleNextRound}
-                      className="w-full mt-6 bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors"
+                      className="w-full mt-6 bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-500 transition-colors"
                     >
                       Next Round →
                     </button>
-                  )}
+                  ) : (
+                    <div className="w-full mt-6 bg-gray-100 border-2 border-gray-300 rounded-lg p-4 text-center">
+                      <p className="text-gray-600 font-semibold">
+                        Waiting for host to start next round...
+                      </p>
+                    </div>
+                  ))}
               </div>
             )}
           </div>

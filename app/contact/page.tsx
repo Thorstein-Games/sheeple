@@ -38,7 +38,7 @@ export default function Contact() {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setFormData({
       ...formData,
@@ -126,7 +126,7 @@ export default function Contact() {
               <button
                 type="submit"
                 disabled={formState === "submitting"}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg"
+                className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg"
               >
                 {formState === "submitting" ? "Sending..." : "Send Message"}
               </button>

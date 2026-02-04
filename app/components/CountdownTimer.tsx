@@ -39,7 +39,6 @@ export default function CountdownTimer({
       // Only update if it's for the current round
       if (data.roundNumber === currentRound) {
         setTimeRemaining(data.timeRemaining);
-        console.log("Timer synced with server:", data.timeRemaining);
       }
     };
 
