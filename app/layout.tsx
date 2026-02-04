@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: "Sheeple Game",
   description:
     "A real-time multiplayer game where you try to think like the herd!",
+  other: {
+    "google-adsense-account": "ca-pub-9555350395401499",
+  },
 };
 
 export default function RootLayout({
