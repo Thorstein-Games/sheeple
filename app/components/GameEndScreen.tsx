@@ -78,7 +78,7 @@ export default function GameEndScreen({
               onPlayAgain();
             }
           }}
-          className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-green-700 transition-colors"
+          className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-green-500 transition-colors"
         >
           Play Again
         </button>

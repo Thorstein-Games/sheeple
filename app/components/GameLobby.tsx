@@ -197,7 +197,7 @@ export function GameLobby({ playerName }: GameLobbyProps) {
                     room.isGameStarted ||
                     room.isPrivate
                   }
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
                   {room.isPrivate
                     ? "Private"

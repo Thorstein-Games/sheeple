@@ -438,7 +438,7 @@ export default function RoomPage() {
                     <button
                       onClick={handleSubmitAnswer}
                       disabled={!playerAnswer.trim()}
-                      className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                      className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                     >
                       Submit Answer
                     </button>
@@ -568,7 +568,7 @@ export default function RoomPage() {
                   (socket?.id === hostId ? (
                     <button
                       onClick={handleNextRound}
-                      className="w-full mt-6 bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors"
+                      className="w-full mt-6 bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-500 transition-colors"
                     >
                       Next Round →
                     </button>

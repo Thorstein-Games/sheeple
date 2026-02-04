@@ -44,9 +44,18 @@
   cursor: pointer;
   font-size: 24px;
   font-weight: bold;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000,
+    -2px 0 0 #000,
+    2px 0 0 #000,
+    0 -2px 0 #000,
+    0 2px 0 #000;
 
   .sheepPop {
-    opacity: 0.9;
+    opacity: 1;
     transform: scale(1) translateY(0) rotate(var(--sheep-rot, 0deg));
   }
 

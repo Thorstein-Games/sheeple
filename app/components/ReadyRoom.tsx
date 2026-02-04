@@ -136,7 +136,7 @@ export default function ReadyRoom({
             <button
               onClick={handleAddFakePlayer}
               disabled={!isConnected}
-              className="bg-yellow-600 text-white px-3 py-1 rounded text-sm font-medium hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              className="bg-yellow-600 text-white px-3 py-1 rounded text-sm font-medium hover:bg-yellow-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
               + Add Fake Player
             </button>
@@ -149,7 +149,7 @@ export default function ReadyRoom({
           <button
             onClick={onPlayerReady}
             disabled={!isConnected || players.length < MIN_PLAYERS}
-            className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
             Ready
           </button>
