@@ -387,6 +387,7 @@ export default function RoomPage() {
             previousWinners={previousWinners}
             currentPlayerId={socket?.id}
             hostId={hostId}
+            socket={socket}
             onPlayerReady={handlePlayerReady}
             onStartGame={handleStartGame}
           />

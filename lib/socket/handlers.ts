@@ -2,6 +2,7 @@ import { Server as SocketIOServer, Socket } from "socket.io";
 import { GameEvents } from "./events";
 import { MIN_PLAYERS, MAX_PLAYERS } from "../constants";
 import { GameManager } from "../game/GameManager";
+import { handleAddFakePlayer } from "../game/devMode";
 
 let gameManager: GameManager;
 
@@ -57,6 +58,11 @@ export function setupSocketHandlers(io: SocketIOServer) {
     // Handle chat messages
     socket.on(GameEvents.SEND_MESSAGE, (data: { message: string }) => {
       handleSendMessage(io, socket, data);
+    });
+
+    // Handle adding fake players (dev mode only)
+    socket.on(GameEvents.ADD_FAKE_PLAYER, (data: { count?: number }) => {
+      handleAddFakePlayer(io, socket, data);
     });
 
     // Handle disconnect

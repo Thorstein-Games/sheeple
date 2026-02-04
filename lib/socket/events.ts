@@ -36,6 +36,9 @@ export enum GameEvents {
   SEND_MESSAGE = "send_message",
   NEW_MESSAGE = "new_message",
 
+  // Dev mode events
+  ADD_FAKE_PLAYER = "add_fake_player",
+
   // Error events
   ERROR = "error",
 }
