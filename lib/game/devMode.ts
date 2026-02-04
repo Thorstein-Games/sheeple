@@ -84,11 +84,11 @@ export function setupDevMode(io: SocketIOServer) {
         const fakePlayers = roomFakePlayers.get(roomId);
         if (!fakePlayers || fakePlayers.length === 0) return;
 
-        // Auto-submit answers for fake players after a delay
-        setTimeout(() => {
-          const gameManager = getGameManager();
-          fakePlayers.forEach((player, index) => {
-            setTimeout(() => {
+        // Auto-submit answers for fake players immediately
+        const gameManager = getGameManager();
+        fakePlayers.forEach((player, index) => {
+          setTimeout(
+            () => {
               // Find answer based on prompt
               const promptLower = data.prompt.toLowerCase();
               let answer = "test answer";
@@ -104,9 +104,10 @@ export function setupDevMode(io: SocketIOServer) {
               // Submit answer for fake player
               gameManager.submitAnswer(roomId, player.id, answer);
               console.log(`🤖 ${player.name} submitted: ${answer}`);
-            }, Math.random() * 3000); // Random delay 0-3 seconds
-          });
-        }, 2000);
+            },
+            Math.random() * 1000 + 200,
+          ); // Random delay 200-1200ms
+        });
       },
     );
   });
