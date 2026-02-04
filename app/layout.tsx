@@ -43,6 +43,11 @@ export default function RootLayout({
             gtag('config', 'G-HE8WYT78H8');
           `}
         </Script>
+        <Script
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9555350395401499"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
         <SocketProvider>
           <Navbar />
           <main className="flex-1">{children}</main>
