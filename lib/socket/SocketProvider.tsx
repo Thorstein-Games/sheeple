@@ -45,24 +45,24 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Initialize player name from sessionStorage on mount, or generate a random one
+  // Initialize player name from localStorage on mount, or generate a random one
   useEffect(() => {
-    const storedName = sessionStorage.getItem("playerName");
+    const storedName = localStorage.getItem("playerName");
     if (storedName) {
       setPlayerNameState(storedName);
     } else {
       // Generate a random player name if none exists
       const randomName = generateRandomPlayerName();
       setPlayerNameState(randomName);
-      sessionStorage.setItem("playerName", randomName);
+      localStorage.setItem("playerName", randomName);
     }
   }, []);
 
-  // Sync playerName to sessionStorage whenever it changes
+  // Sync playerName to localStorage whenever it changes
   const setPlayerName = (name: string | null) => {
     if (name) {
       setPlayerNameState(name);
-      sessionStorage.setItem("playerName", name);
+      localStorage.setItem("playerName", name);
     }
   };
 

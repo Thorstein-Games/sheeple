@@ -8,7 +8,7 @@ import Chat from "../components/Chat";
 export default function LobbyPage() {
   const { playerName } = useSocket();
 
-  // playerName is always set by SocketProvider (either from sessionStorage or generated randomly)
+  // playerName is always set by SocketProvider (either from localStorage or generated randomly)
   // so we can safely use it without checking
 
   return (

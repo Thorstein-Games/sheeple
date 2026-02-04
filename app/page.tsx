@@ -20,7 +20,7 @@ export default function Home() {
 
   const handleStartGame = () => {
     if (!playerNameInput.trim()) return;
-    // Store player name in context (which syncs to sessionStorage)
+    // Store player name in context (which syncs to localStorage)
     setPlayerName(playerNameInput.trim());
     router.push("/lobby");
   };
