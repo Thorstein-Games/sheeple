@@ -41,7 +41,8 @@ export default function Home() {
             Play Sheeple Online - Free Multiplayer Party Game
           </h1>
           <p className="text-xl text-gray-600">
-            Think like the herd and win! Answer questions, match with the group, play with 3-12 friends - no downloads required
+            Think like the herd and win! Answer questions, match with the group,
+            play with 3-12 friends - no downloads required
           </p>
         </div>
 
@@ -112,9 +113,12 @@ export default function Home() {
 
         {/* Rules Section */}
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-          <h2 className="text-2xl font-bold mb-4 text-center">How to Play Sheeple</h2>
+          <h2 className="text-2xl font-bold mb-4 text-center">
+            How to Play Sheeple
+          </h2>
           <p className="text-center text-gray-600 mb-6">
-            A group thinking party game inspired by popular herd mentality games. Play with friends anywhere!
+            A group thinking party game inspired by popular herd mentality
+            games. Play with friends anywhere!
           </p>
           <div className="space-y-6">
             <div className="flex gap-4">
@@ -192,20 +196,24 @@ export default function Home() {
 
         {/* Why Play Section */}
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl shadow-xl p-8">
-          <h2 className="text-2xl font-bold mb-6 text-center">Why Play Sheeple Online?</h2>
+          <h2 className="text-2xl font-bold mb-6 text-center">
+            Why Play Sheeple Online?
+          </h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center">
               <div className="text-4xl mb-3">🌐</div>
               <h3 className="font-semibold text-lg mb-2">Play Anywhere</h3>
               <p className="text-gray-600">
-                No downloads, no apps. Just share a link and start playing instantly!
+                No downloads, no apps. Just share a link and start playing
+                instantly!
               </p>
             </div>
             <div className="text-center">
               <div className="text-4xl mb-3">👥</div>
               <h3 className="font-semibold text-lg mb-2">3-12 Players</h3>
               <p className="text-gray-600">
-                Perfect for small gatherings or big parties. The more, the merrier!
+                Perfect for small gatherings or big parties. The more, the
+                merrier!
               </p>
             </div>
             <div className="text-center">
@@ -216,6 +224,23 @@ export default function Home() {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Legal Disclaimer */}
+        <div className="mt-8 text-center">
+          <p className="text-xs text-gray-500 leading-relaxed">
+            By playing Sheeple, you agree to the use of cookies and
+            advertisements, which are required to play the game. We use cookies
+            to maintain your session and game state. For more information,
+            please see our{" "}
+            <Link
+              href="/privacy"
+              className="text-blue-600 hover:text-blue-800 underline"
+            >
+              Privacy Policy
+            </Link>
+            .
+          </p>
         </div>
       </div>
     </div>
