@@ -229,10 +229,13 @@ export default function Home() {
         {/* Legal Disclaimer */}
         <div className="mt-8 text-center">
           <p className="text-xs text-gray-500 leading-relaxed">
-            By playing Sheeple, you agree to the use of cookies and
-            advertisements, which are required to play the game. We use cookies
-            to maintain your session and game state. For more information,
-            please see our{" "}
+            Sheeple is an independent, fan-made party game inspired by classic
+            word and deduction games. It is not affiliated with or endorsed by
+            any other company or product. All original artwork, code, and assets
+            are the property of their respective creators. By playing Sheeple,
+            you agree to the use of cookies and advertisements, which are
+            required to play the game. We use cookies to maintain your session
+            and game state. For more information, please see our{" "}
             <Link
               href="/privacy"
               className="text-blue-600 hover:text-blue-800 underline"
