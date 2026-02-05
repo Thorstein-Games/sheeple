@@ -13,17 +13,17 @@ export function Footer() {
             >
               Home
             </a>
-            {/* <a
-              href="/about"
-              className="text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              About
-            </a> */}
             <a
               href="/how-to-play"
               className="text-gray-600 hover:text-gray-900 transition-colors"
             >
               How to Play
+            </a>
+            <a
+              href="/faq"
+              className="text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              FAQ
             </a>
             <a
               href="/contact"

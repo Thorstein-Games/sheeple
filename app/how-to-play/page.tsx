@@ -2,22 +2,28 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "How to Play Sheeple - Party Game Rules & Instructions | Play Online",
+  title: "How to Play Sheeple - Online Party Game Rules & Instructions",
   description:
-    "Learn how to play Sheeple, the ultimate party game where you think like the herd! Complete rules, scoring system, and game modes for 3-12 players. Start playing online now.",
+    "Learn how to play Sheeple online! Complete rules, scoring system, and game modes for 3-12 players. A group thinking party game inspired by herd mentality games. Free, no downloads required.",
   keywords: [
     "sheeple rules",
     "how to play sheeple",
+    "group thinking game",
+    "herd mentality style game",
     "party game online",
     "multiplayer party game",
-    "group thinking game",
-    "question game online",
+    "question matching game",
+    "online party game rules",
+    "think like the herd game",
   ],
   openGraph: {
     title: "How to Play Sheeple - Online Party Game Rules",
     description:
-      "Master the art of thinking like the herd! Learn the complete rules and start playing Sheeple online with friends.",
+      "Master the art of thinking like the herd! Learn the complete rules for Sheeple and start playing with friends online.",
     type: "article",
+  },
+  alternates: {
+    canonical: "https://sheeple-game.com/how-to-play",
   },
 };
 
@@ -32,6 +38,7 @@ export default function HowToPlay() {
           </h1>
           <p className="text-xl text-gray-600">
             The online party game where thinking like everyone else pays off!
+            Inspired by popular group thinking games.
           </p>
         </header>
 
@@ -41,12 +48,14 @@ export default function HowToPlay() {
           <p className="text-lg text-gray-700 mb-4">
             Sheeple is a multiplayer party game where players answer questions
             trying to match what everyone else thinks. The more you think like
-            the herd, the more points you score!
+            the herd, the more points you score! Perfect for fans of group
+            thinking and question matching games.
           </p>
           <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
             <p className="text-gray-800">
               <strong>Perfect for:</strong> 3-12 players | Family game nights |
-              Virtual hangouts | Party entertainment
+              Virtual hangouts | Party entertainment | Playing online with
+              friends anywhere
             </p>
           </div>
         </section>

@@ -1,3 +1,19 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Contact Us - Sheeple Game Support & Feedback",
+  description:
+    "Contact the Sheeple team! Get support, share feedback, or ask questions about playing our online party game. We're here to help!",
+  openGraph: {
+    title: "Contact Sheeple Game",
+    description: "Get in touch with the Sheeple team for support and feedback",
+    type: "website",
+  },
+  alternates: {
+    canonical: "https://sheeple-game.com/contact",
+  },
+};
+
 "use client";
 
 import { useState } from "react";
