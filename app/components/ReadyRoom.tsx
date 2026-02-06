@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { Socket } from "socket.io-client";
 import { MIN_PLAYERS, MAX_PLAYERS } from "@/lib/constants";
 import { GameEvents } from "@/lib/socket/events";
@@ -43,10 +44,22 @@ export default function ReadyRoom({
     players.every((p) => readyPlayers.has(p.playerId));
 
   const isDev = process.env.NODE_ENV === "development";
+  const [copied, setCopied] = useState(false);
 
   const handleAddFakePlayer = () => {
     if (socket && isDev) {
       socket.emit(GameEvents.ADD_FAKE_PLAYER, { count: 1 });
+    }
+  };
+
+  const handleCopyRoomUrl = async () => {
+    const roomUrl = `${window.location.origin}/room/${roomId}`;
+    try {
+      await navigator.clipboard.writeText(roomUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy URL:", err);
     }
   };
 
@@ -110,22 +123,26 @@ export default function ReadyRoom({
               </div>
             </div>
           ))}
-          {players.length === 0 && (
-            <p className="text-gray-500 text-center py-4">
-              Waiting for players to join...
-            </p>
-          )}
         </div>
       </div>
 
       {players.length < MIN_PLAYERS && (
-        <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800">
-            <span className="font-semibold">🎮 Game Requirements:</span> You
-            need at least {MIN_PLAYERS} players to start the game. Share the
+        <div className="flex gap-4 items-center mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800 flex-1">
+            You need at least {MIN_PLAYERS} players to start the game. Share the
             room code <span className="font-mono font-bold">{roomId}</span> with
             your friends!
           </p>
+          <button
+            onClick={handleCopyRoomUrl}
+            className="bg-blue-600 text-white py-2 px-4 rounded-lg font-medium text-sm hover:bg-blue-500 transition-colors whitespace-nowrap flex items-center justify-center gap-2"
+          >
+            {copied ? (
+              <span>✓ Copied to Clipboard!</span>
+            ) : (
+              <span>Copy Room URL</span>
+            )}
+          </button>
         </div>
       )}
 

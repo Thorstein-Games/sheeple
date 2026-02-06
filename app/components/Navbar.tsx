@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter, usePathname, useParams } from "next/navigation";
 import Link from "next/link";
 import { useSocket } from "@/lib/socket/SocketProvider";
@@ -9,14 +10,32 @@ export function Navbar() {
   const router = useRouter();
   const params = useParams();
   const pathname = usePathname();
+  const [showRoomPopover, setShowRoomPopover] = useState(false);
+  const [roomCopied, setRoomCopied] = useState(false);
 
   const getPageName = () => {
     if (pathname === "/") return "Home";
     if (pathname === "/how-to-play") return "How to Play";
     if (pathname === "/contact") return "Contact";
     if (pathname.includes("/lobby")) return "Lobby";
-    if (pathname.includes("/room")) return `Room: ${params.roomId}`;
+    if (pathname.includes("/room")) return null; // Handle room separately
     return "Sheeple";
+  };
+
+  const handleCopyRoomCode = async () => {
+    if (!params.roomId) return;
+
+    const roomUrl = `${window.location.origin}/room/${params.roomId}`;
+    try {
+      await navigator.clipboard.writeText(roomUrl);
+      setRoomCopied(true);
+      setTimeout(() => {
+        setRoomCopied(false);
+        setShowRoomPopover(false);
+      }, 1500);
+    } catch (err) {
+      console.error("Failed to copy room URL:", err);
+    }
   };
 
   const handleLeaveRoom = () => {
@@ -47,7 +66,43 @@ export function Navbar() {
                 <img src="/arrow-left.svg" alt="Back" className="h-5 w-5" />
               </button>
             )}
-            <h1 className="text-xl font-bold text-gray-900">{getPageName()}</h1>
+            {pathname.includes("/room") ? (
+              <div className="relative">
+                <div
+                  className="text-xl font-bold text-gray-900 flex items-center gap-2 cursor-pointer hover:text-blue-600 transition-colors"
+                  onMouseEnter={() => setShowRoomPopover(true)}
+                  onMouseLeave={() => {
+                    if (!roomCopied) setShowRoomPopover(false);
+                  }}
+                  onClick={handleCopyRoomCode}
+                  onKeyDown={handleCopyRoomCode}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <span>Room:</span>
+                  <span className="font-mono bg-gray-100 px-2 py-1 rounded text-base">
+                    {params.roomId}
+                  </span>
+                </div>
+                {showRoomPopover && (
+                  <div
+                    className="absolute left-0 top-full mt-2 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-3 min-w-50"
+                    onMouseEnter={() => setShowRoomPopover(true)}
+                    onMouseLeave={() => setShowRoomPopover(false)}
+                  >
+                    {roomCopied ? (
+                      <span>✓ Copied!</span>
+                    ) : (
+                      <span>Click to Copy Room URL</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <h1 className="text-xl font-bold text-gray-900">
+                {getPageName()}
+              </h1>
+            )}
           </div>
 
           {/* Center - Logo */}
