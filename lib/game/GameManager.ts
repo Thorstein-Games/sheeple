@@ -42,6 +42,61 @@ function normalizeAnswer(answer: string): string {
   return answer.toLowerCase().replace(/[^a-z0-9]/g, ""); // Keep only letters and numbers
 }
 
+/**
+ * Calculates Levenshtein distance between two strings (edit distance)
+ * Used to determine how many single-character edits are needed to change one string into another
+ */
+function levenshteinDistance(str1: string, str2: string): number {
+  const len1 = str1.length;
+  const len2 = str2.length;
+
+  // Create a 2D array for dynamic programming
+  const matrix: number[][] = Array(len1 + 1)
+    .fill(null)
+    .map(() => Array(len2 + 1).fill(0));
+
+  // Initialize first column and row
+  for (let i = 0; i <= len1; i++) matrix[i][0] = i;
+  for (let j = 0; j <= len2; j++) matrix[0][j] = j;
+
+  // Fill in the rest of the matrix
+  for (let i = 1; i <= len1; i++) {
+    for (let j = 1; j <= len2; j++) {
+      const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1, // deletion
+        matrix[i][j - 1] + 1, // insertion
+        matrix[i - 1][j - 1] + cost, // substitution
+      );
+    }
+  }
+
+  return matrix[len1][len2];
+}
+
+/**
+ * Checks if two normalized answers should be considered a match.
+ * Matching criteria:
+ * 1. Exact match
+ * 2. One answer is fully contained within the other (substring match)
+ * 3. Levenshtein distance of 1 (one character difference)
+ */
+function answersMatch(answer1: string, answer2: string): boolean {
+  if (answer1 === answer2) return true;
+
+  // Check if one answer is a substring of the other
+  if (answer1.includes(answer2) || answer2.includes(answer1)) {
+    return true;
+  }
+
+  // Check if answers are only one character apart (for similar length answers)
+  if (levenshteinDistance(answer1, answer2) <= 1) {
+    return true;
+  }
+
+  return false;
+}
+
 export class GameManager {
   private rooms: Map<string, GameRoom> = new Map();
   private io: SocketIOServer;
@@ -350,17 +405,31 @@ export class GameManager {
     // Players without answers are excluded from scoring
     const answerCounts = new Map<string, number>();
     const answerPlayers = new Map<string, string[]>();
+    const answerGroups = new Map<string, string>(); // Maps playerId to their group representative
 
-    // Count answer frequencies based on normalized answers
+    // Group answers based on flexible matching
+    // Each answer is compared to existing groups, and either joins a group or creates a new one
     room.answers.forEach((normalizedAnswer, playerId) => {
-      answerCounts.set(
-        normalizedAnswer,
-        (answerCounts.get(normalizedAnswer) || 0) + 1,
-      );
-      if (!answerPlayers.has(normalizedAnswer)) {
-        answerPlayers.set(normalizedAnswer, []);
+      let foundMatch = false;
+
+      // Try to find an existing group that this answer matches with
+      for (const [groupRep, players] of answerPlayers.entries()) {
+        if (answersMatch(normalizedAnswer, groupRep)) {
+          // This answer matches an existing group
+          players.push(playerId);
+          answerGroups.set(playerId, groupRep);
+          answerCounts.set(groupRep, (answerCounts.get(groupRep) || 0) + 1);
+          foundMatch = true;
+          break;
+        }
       }
-      answerPlayers.get(normalizedAnswer)!.push(playerId);
+
+      // If no matching group found, create a new one with this answer as the representative
+      if (!foundMatch) {
+        answerPlayers.set(normalizedAnswer, [playerId]);
+        answerGroups.set(playerId, normalizedAnswer);
+        answerCounts.set(normalizedAnswer, 1);
+      }
     });
 
     // Award points: players get points equal to how many others gave the same answer
@@ -384,7 +453,8 @@ export class GameManager {
       ([playerId, normalizedAnswer]) => {
         const player = room.players.get(playerId);
         const originalAnswer = room.originalAnswers.get(playerId) || "";
-        const count = answerCounts.get(normalizedAnswer) || 0;
+        const groupRep = answerGroups.get(playerId) || normalizedAnswer;
+        const count = answerCounts.get(groupRep) || 0;
         return {
           playerId,
           playerName: player?.playerName || "Unknown",
