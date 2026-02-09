@@ -2,6 +2,7 @@ import { Server as SocketIOServer } from "socket.io";
 import { GameEvents } from "../socket/events";
 import { MAX_PLAYERS } from "../constants";
 import { PromptQueue } from "./prompts";
+import { handleRoundStart as devModeHandleRoundStart } from "./devMode";
 
 export interface Player {
   playerId: string;
@@ -273,6 +274,9 @@ export class GameManager {
     console.log(
       `Round ${room.currentRound} started in room ${roomId}: ${room.currentPrompt}`,
     );
+
+    // Notify dev mode to auto-submit fake player answers
+    devModeHandleRoundStart(roomId, room.currentPrompt, room.currentRound);
 
     // Set server-side timer to auto-reveal answers after time limit
     room.roundTimer = setTimeout(() => {

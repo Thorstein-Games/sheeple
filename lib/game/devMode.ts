@@ -1,6 +1,7 @@
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { GameEvents } from "../socket/events";
 import { getGameManager } from "../socket/handlers";
+import type { GameManager } from "./GameManager";
 
 const FAKE_PLAYER_NAMES = [
   "Alice the Awesome",
@@ -42,7 +43,10 @@ const FAKE_ANSWERS = {
 // Track fake players per room
 const roomFakePlayers = new Map<string, Array<{ id: string; name: string }>>();
 
+let ioServer: SocketIOServer;
+
 export function setupDevMode(io: SocketIOServer) {
+  ioServer = io;
   if (process.env.NODE_ENV !== "development") {
     return;
   }
@@ -73,43 +77,53 @@ export function setupDevMode(io: SocketIOServer) {
         console.log(`🤖 All fake players in room ${roomId} are ready!`);
       }, 1500);
     });
+  });
+}
 
-    // Auto-submit answers for fake players when round starts
-    socket.on(
-      GameEvents.ROUND_START,
-      (data: { prompt: string; roundNumber: number }) => {
-        const roomId = socket.data.roomId;
-        if (!roomId) return;
+// Called by GameManager when a round starts to auto-submit fake player answers
+export function handleRoundStart(
+  roomId: string,
+  prompt: string,
+  roundNumber: number,
+) {
+  if (process.env.NODE_ENV !== "development") {
+    return;
+  }
 
-        const fakePlayers = roomFakePlayers.get(roomId);
-        if (!fakePlayers || fakePlayers.length === 0) return;
+  const fakePlayers = roomFakePlayers.get(roomId);
+  if (!fakePlayers || fakePlayers.length === 0) {
+    return;
+  }
 
-        // Auto-submit answers for fake players immediately
-        const gameManager = getGameManager();
-        fakePlayers.forEach((player, index) => {
-          setTimeout(
-            () => {
-              // Find answer based on prompt
-              const promptLower = data.prompt.toLowerCase();
-              let answer = "test answer";
+  console.log(
+    `🎮 DevMode: Auto-submitting answers for ${fakePlayers.length} fake players`,
+  );
 
-              // Try to find matching fake answer
-              for (const [key, answers] of Object.entries(FAKE_ANSWERS)) {
-                if (promptLower.includes(key)) {
-                  answer = answers[index] || answers[0];
-                  break;
-                }
-              }
+  // Auto-submit answers for fake players
+  const gameManager = getGameManager();
+  fakePlayers.forEach((player, index) => {
+    setTimeout(
+      () => {
+        // Find answer based on prompt
+        const promptLower = prompt.toLowerCase();
+        let answer = "test answer";
 
-              // Submit answer for fake player
-              gameManager.submitAnswer(roomId, player.id, answer);
-              console.log(`🤖 ${player.name} submitted: ${answer}`);
-            },
-            Math.random() * 1000 + 200,
-          ); // Random delay 200-1200ms
-        });
+        // Try to find matching fake answer
+        for (const [key, answers] of Object.entries(FAKE_ANSWERS)) {
+          if (promptLower.includes(key)) {
+            answer = answers[index] || answers[0];
+            break;
+          }
+        }
+
+        // Submit answer for fake player
+        const success = gameManager.submitAnswer(roomId, player.id, answer);
+        console.log(
+          `🤖 ${player.name} submitted: ${answer} (success: ${success})`,
+        );
       },
-    );
+      Math.random() * 1000 + 200,
+    ); // Random delay 200-1200ms
   });
 }
 
