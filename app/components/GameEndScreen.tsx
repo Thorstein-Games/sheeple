@@ -70,25 +70,17 @@ export default function GameEndScreen({
         ))}
       </div>
 
-      {isHost ? (
-        <button
-          onClick={() => {
-            if (socket) {
-              socket.emit(GameEvents.PLAYER_READY);
-              onPlayAgain();
-            }
-          }}
-          className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-green-500 transition-colors"
-        >
-          Play Again
-        </button>
-      ) : (
-        <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 text-center">
-          <p className="text-blue-700 font-semibold">
-            Waiting for host to start a new game...
-          </p>
-        </div>
-      )}
+      <button
+        onClick={() => {
+          if (socket) {
+            socket.emit(GameEvents.PLAYER_READY);
+            onPlayAgain();
+          }
+        }}
+        className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-green-500 transition-colors"
+      >
+        Ready for Next Game
+      </button>
     </div>
   );
 }
