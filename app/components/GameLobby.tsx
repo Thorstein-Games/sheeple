@@ -17,7 +17,7 @@ interface GameLobbyProps {
 
 export function GameLobby({ playerName }: GameLobbyProps) {
   const router = useRouter();
-  const { socket, isConnected } = useSocket();
+  const { socket, isConnected, playerId, tabId } = useSocket();
   const [roomId, setRoomId] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
   const [rooms, setRooms] = useState<RoomInfo[]>([]);
@@ -32,10 +32,12 @@ export function GameLobby({ playerName }: GameLobbyProps) {
       playerName: playerName,
       roomId: "lobby",
       isPrivate: true, // Make it private so it doesn't show up in room lists
+      playerId,
+      tabId,
     });
 
     setHasJoinedLobby(true);
-  }, [socket, isConnected, playerName, hasJoinedLobby]);
+  }, [socket, isConnected, playerName, hasJoinedLobby, playerId, tabId]);
 
   useEffect(() => {
     if (!socket) return;
@@ -91,6 +93,8 @@ export function GameLobby({ playerName }: GameLobbyProps) {
       playerName: playerName,
       roomId: targetRoomId || roomId.trim() || undefined,
       isPrivate: forcePublic ? false : targetRoomId ? false : isPrivate,
+      playerId,
+      tabId,
     };
 
     socket.emit(GameEvents.JOIN_GAME, data);

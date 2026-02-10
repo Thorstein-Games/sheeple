@@ -10,6 +10,8 @@ export interface Player {
   isReady: boolean;
   answer?: string;
   score: number;
+  uniquePlayerId?: string; // Unique player ID (localStorage)
+  tabId?: string; // Unique tab ID (sessionStorage)
 }
 
 export interface GameRoom {
@@ -131,11 +133,29 @@ export class GameManager {
     return this.rooms.get(roomId);
   }
 
+  checkDuplicateTab(
+    roomId: string,
+    uniquePlayerId: string,
+    tabId: string,
+  ): boolean {
+    const room = this.getRoom(roomId);
+    if (!room) return false;
+
+    // Check if a player with the same uniquePlayerId but different tabId is already in the room
+    const existingPlayer = Array.from(room.players.values()).find(
+      (p) => p.uniquePlayerId === uniquePlayerId && p.tabId !== tabId,
+    );
+
+    return !!existingPlayer;
+  }
+
   addPlayer(
     roomId: string,
     playerId: string,
     playerName: string,
     isPrivate: boolean = false,
+    uniquePlayerId?: string,
+    tabId?: string,
   ): { added: boolean; isReconnect: boolean; oldPlayerId?: string } {
     let room = this.getRoom(roomId);
     if (!room) {
@@ -149,8 +169,13 @@ export class GameManager {
     }
 
     // Check if a player with the same name already exists (reconnection scenario)
+    // But only if they have the same uniquePlayerId (same browser) or no uniquePlayerId tracking
     const existingPlayer = Array.from(room.players.values()).find(
-      (p) => p.playerName === playerName,
+      (p) =>
+        p.playerName === playerName &&
+        (!uniquePlayerId ||
+          !p.uniquePlayerId ||
+          p.uniquePlayerId === uniquePlayerId),
     );
 
     if (existingPlayer) {
@@ -189,6 +214,8 @@ export class GameManager {
         isReady: existingPlayer.isReady,
         score: existingPlayer.score,
         answer: existingPlayer.answer,
+        uniquePlayerId,
+        tabId,
       };
 
       room.players.set(playerId, player);
@@ -202,6 +229,8 @@ export class GameManager {
       playerName,
       isReady: false,
       score: 0,
+      uniquePlayerId,
+      tabId,
     };
 
     room.players.set(playerId, player);

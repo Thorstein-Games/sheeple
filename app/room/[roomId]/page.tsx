@@ -30,6 +30,8 @@ export default function RoomPage() {
     playerName: contextPlayerName,
     players,
     setPlayers,
+    playerId,
+    tabId,
   } = useSocket();
   const roomId = params.roomId as string;
 
@@ -93,9 +95,11 @@ export default function RoomPage() {
     socket.emit(GameEvents.JOIN_GAME, {
       playerName: contextPlayerName,
       roomId,
+      playerId,
+      tabId,
     });
     setHasJoined(true);
-  }, [socket, contextPlayerName, roomId, hasJoined]);
+  }, [socket, contextPlayerName, roomId, hasJoined, playerId, tabId]);
 
   useEffect(() => {
     if (!socket) return;

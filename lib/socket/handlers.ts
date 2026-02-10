@@ -85,11 +85,32 @@ function handleGetRooms(io: SocketIOServer, socket: Socket) {
 function handleJoinGame(
   io: SocketIOServer,
   socket: Socket,
-  data: { playerName: string; roomId?: string; isPrivate?: boolean },
+  data: {
+    playerName: string;
+    roomId?: string;
+    isPrivate?: boolean;
+    playerId?: string;
+    tabId?: string;
+  },
 ) {
-  const { playerName, roomId, isPrivate = false } = data;
+  const { playerName, roomId, isPrivate = false, playerId, tabId } = data;
 
   const room = roomId || generateRoomId();
+
+  // Check if this player is already connected from another tab
+  if (playerId && tabId) {
+    const isDuplicate = gameManager.checkDuplicateTab(room, playerId, tabId);
+    if (isDuplicate) {
+      socket.emit(GameEvents.ERROR, {
+        message:
+          "You are already connected to this game in another tab. Please close the other tab or use that one instead.",
+      });
+      console.log(
+        `Rejected duplicate tab connection for player ${playerId} (${playerName}) in room ${room}`,
+      );
+      return;
+    }
+  }
 
   if (socket.data.roomId === room) {
     console.log(
@@ -126,8 +147,17 @@ function handleJoinGame(
   socket.join(room);
   socket.data.playerName = playerName;
   socket.data.roomId = room;
+  socket.data.playerId = playerId;
+  socket.data.tabId = tabId;
 
-  const result = gameManager.addPlayer(room, socket.id, playerName, isPrivate);
+  const result = gameManager.addPlayer(
+    room,
+    socket.id,
+    playerName,
+    isPrivate,
+    playerId,
+    tabId,
+  );
 
   if (!result.added) {
     console.log(

@@ -4,6 +4,8 @@ export interface JoinGameData {
   playerName: string;
   roomId?: string;
   isPrivate?: boolean;
+  playerId?: string; // Unique player ID (persists across tabs/sessions)
+  tabId?: string; // Unique tab ID (unique per browser tab)
 }
 
 export interface PlayerJoinedData {

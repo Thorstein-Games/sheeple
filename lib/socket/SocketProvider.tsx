@@ -4,6 +4,26 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { generateRandomPlayerName } from "@/lib/utils";
 
+// Generate a unique ID for this browser/player (persists across tabs and sessions)
+function getOrCreatePlayerId(): string {
+  let playerId = localStorage.getItem("playerId");
+  if (!playerId) {
+    playerId = `player_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+    localStorage.setItem("playerId", playerId);
+  }
+  return playerId;
+}
+
+// Generate a unique ID for this specific tab (only persists for this tab)
+function getOrCreateTabId(): string {
+  let tabId = sessionStorage.getItem("tabId");
+  if (!tabId) {
+    tabId = `tab_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+    sessionStorage.setItem("tabId", tabId);
+  }
+  return tabId;
+}
+
 export interface Player {
   playerId: string;
   playerName: string;
@@ -19,6 +39,8 @@ interface SocketContextType {
   setPlayerName: (name: string | null) => void;
   players: Player[];
   setPlayers: (action: SetPlayersAction) => void;
+  playerId: string;
+  tabId: string;
 }
 
 const SocketContext = createContext<SocketContextType>({
@@ -28,6 +50,8 @@ const SocketContext = createContext<SocketContextType>({
   setPlayerName: () => {},
   players: [],
   setPlayers: () => {},
+  playerId: "",
+  tabId: "",
 });
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
@@ -35,6 +59,8 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const [playerName, setPlayerNameState] = useState<string | null>(null);
   const [players, setPlayersState] = useState<Player[]>([]);
+  const [playerId] = useState<string>(getOrCreatePlayerId());
+  const [tabId] = useState<string>(getOrCreateTabId());
 
   // Wrapper to match our type signature
   const setPlayers = (action: SetPlayersAction) => {
@@ -99,6 +125,8 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         setPlayerName,
         players,
         setPlayers,
+        playerId,
+        tabId,
       }}
     >
       {children}
