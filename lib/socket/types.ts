@@ -25,6 +25,16 @@ export interface PlayerLeftData {
   playerName: string;
 }
 
+export interface UpdatePlayerNameData {
+  newName: string;
+}
+
+export interface PlayerNameUpdatedData {
+  playerId: string;
+  oldName: string;
+  newName: string;
+}
+
 export interface HostChangedData {
   newHostId: string;
   newHostName: string;

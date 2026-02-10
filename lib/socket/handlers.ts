@@ -30,6 +30,11 @@ export function setupSocketHandlers(io: SocketIOServer) {
       handlePlayerReady(io, socket);
     });
 
+    // Handle player name update
+    socket.on(GameEvents.UPDATE_PLAYER_NAME, (data: { newName: string }) => {
+      handleUpdatePlayerName(io, socket, data);
+    });
+
     // Handle start game (host only)
     socket.on(GameEvents.START_GAME, () => {
       handleStartGame(io, socket);
@@ -238,6 +243,57 @@ function handlePlayerReady(io: SocketIOServer, socket: Socket) {
   });
 
   // Note: Game is now started by the host using START_GAME event
+}
+
+function handleUpdatePlayerName(
+  io: SocketIOServer,
+  socket: Socket,
+  data: { newName: string },
+) {
+  const room = socket.data.roomId;
+  const oldName = socket.data.playerName;
+  const newName = data.newName.trim();
+
+  if (!room) {
+    socket.emit(GameEvents.ERROR, { message: "Not in a room" });
+    return;
+  }
+
+  if (!newName || newName.length === 0) {
+    socket.emit(GameEvents.ERROR, { message: "Name cannot be empty" });
+    return;
+  }
+
+  if (newName.length > 20) {
+    socket.emit(GameEvents.ERROR, {
+      message: "Name cannot exceed 20 characters",
+    });
+    return;
+  }
+
+  // Check if player is ready - can't change name once ready
+  const player = gameManager.getPlayer(room, socket.id);
+  if (player?.isReady) {
+    socket.emit(GameEvents.ERROR, {
+      message: "Cannot change name after readying up",
+    });
+    return;
+  }
+
+  // Update the player name in socket data
+  socket.data.playerName = newName;
+
+  // Update in game manager
+  gameManager.updatePlayerName(room, socket.id, newName);
+
+  // Broadcast the name change to all players in the room
+  io.to(room).emit(GameEvents.PLAYER_NAME_UPDATED, {
+    playerId: socket.id,
+    oldName,
+    newName,
+  });
+
+  console.log(`Player ${oldName} changed name to ${newName} in room ${room}`);
 }
 
 function handleStartGame(io: SocketIOServer, socket: Socket) {

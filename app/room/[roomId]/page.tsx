@@ -19,6 +19,7 @@ import type {
   RoomStateData,
   AnswerSubmittedData,
   HostChangedData,
+  PlayerNameUpdatedData,
 } from "@/lib/socket/types";
 
 export default function RoomPage() {
@@ -28,6 +29,7 @@ export default function RoomPage() {
     socket,
     isConnected,
     playerName: contextPlayerName,
+    setPlayerName,
     players,
     setPlayers,
     playerId,
@@ -212,12 +214,26 @@ export default function RoomPage() {
       setHostId(data.newHostId);
     };
 
+    const handlePlayerNameUpdated = (data: PlayerNameUpdatedData) => {
+      setPlayers((currentPlayers) =>
+        currentPlayers.map((p) =>
+          p.playerId === data.playerId ? { ...p, playerName: data.newName } : p,
+        ),
+      );
+
+      // Update the context player name if it's the current player
+      if (data.playerId === socket?.id) {
+        setPlayerName(data.newName);
+      }
+    };
+
     socket.on(GameEvents.PLAYER_JOINED, handlePlayerJoined);
     socket.on(GameEvents.PLAYER_RECONNECTED, handlePlayerReconnected);
     socket.on(GameEvents.ROOM_STATE, handleRoomState);
     socket.on(GameEvents.PLAYER_READY_STATUS, handlePlayerReadyStatus);
     socket.on(GameEvents.PLAYER_LEFT, handlePlayerLeft);
     socket.on(GameEvents.HOST_CHANGED, handleHostChanged);
+    socket.on(GameEvents.PLAYER_NAME_UPDATED, handlePlayerNameUpdated);
 
     socket.on(GameEvents.GAME_START, (data: GameStartData) => {
       console.log("Game starting:", data);
@@ -275,6 +291,7 @@ export default function RoomPage() {
       socket.off(GameEvents.ROOM_STATE);
       socket.off(GameEvents.PLAYER_LEFT);
       socket.off(GameEvents.HOST_CHANGED);
+      socket.off(GameEvents.PLAYER_NAME_UPDATED);
       socket.off(GameEvents.GAME_START);
       socket.off(GameEvents.ROUND_START);
       socket.off(GameEvents.ANSWER_SUBMITTED);
@@ -296,6 +313,11 @@ export default function RoomPage() {
   const handleStartGame = () => {
     if (!socket) return;
     socket.emit(GameEvents.START_GAME);
+  };
+
+  const handleUpdatePlayerName = (newName: string) => {
+    if (!socket) return;
+    socket.emit(GameEvents.UPDATE_PLAYER_NAME, { newName });
   };
 
   const handleSubmitAnswer = () => {
@@ -394,6 +416,7 @@ export default function RoomPage() {
             socket={socket}
             onPlayerReady={handlePlayerReady}
             onStartGame={handleStartGame}
+            onUpdatePlayerName={handleUpdatePlayerName}
           />
         ) : (
           <div className="space-y-6">

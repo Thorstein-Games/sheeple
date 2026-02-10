@@ -5,6 +5,8 @@ export enum GameEvents {
   PLAYER_RECONNECTED = "player_reconnected",
   PLAYER_LEFT = "player_left",
   HOST_CHANGED = "host_changed",
+  UPDATE_PLAYER_NAME = "update_player_name",
+  PLAYER_NAME_UPDATED = "player_name_updated",
   ROOM_STATE = "room_state",
   GET_ROOMS = "get_rooms",
   ROOMS_LIST = "rooms_list",

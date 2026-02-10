@@ -23,6 +23,7 @@ interface ReadyRoomProps {
   socket: Socket | null;
   onPlayerReady: () => void;
   onStartGame: () => void;
+  onUpdatePlayerName: (newName: string) => void;
 }
 
 export default function ReadyRoom({
@@ -37,6 +38,7 @@ export default function ReadyRoom({
   socket,
   onPlayerReady,
   onStartGame,
+  onUpdatePlayerName,
 }: ReadyRoomProps) {
   const isHost = currentPlayerId === hostId;
   const allPlayersReady =
@@ -45,6 +47,11 @@ export default function ReadyRoom({
 
   const isDev = process.env.NODE_ENV === "development";
   const [copied, setCopied] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [editedName, setEditedName] = useState("");
+
+  const currentPlayer = players.find((p) => p.playerId === currentPlayerId);
+  const canEditName = !readyPlayers.has(currentPlayerId || "");
 
   const handleAddFakePlayer = () => {
     if (socket && isDev) {
@@ -60,6 +67,34 @@ export default function ReadyRoom({
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy URL:", err);
+    }
+  };
+
+  const handleStartEdit = () => {
+    if (currentPlayer) {
+      setEditedName(currentPlayer.playerName);
+      setEditingName(true);
+    }
+  };
+
+  const handleSaveName = () => {
+    const trimmedName = editedName.trim();
+    if (trimmedName && trimmedName !== currentPlayer?.playerName) {
+      onUpdatePlayerName(trimmedName);
+    }
+    setEditingName(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingName(false);
+    setEditedName("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSaveName();
+    } else if (e.key === "Escape") {
+      handleCancelEdit();
     }
   };
 
@@ -107,7 +142,35 @@ export default function ReadyRoom({
                     👑
                   </span>
                 )}
-                {player.playerName}
+                {player.playerId === currentPlayerId && editingName ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={editedName}
+                      onChange={(e) => setEditedName(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      onBlur={handleSaveName}
+                      autoFocus
+                      maxLength={20}
+                      className="px-2 py-1 border-2 border-blue-400 rounded focus:outline-none focus:border-blue-600"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    {player.playerName}
+                    {player.playerId === currentPlayerId &&
+                      canEditName &&
+                      !editingName && (
+                        <button
+                          onClick={handleStartEdit}
+                          className="ml-1 text-gray-500 hover:text-blue-600 transition-colors"
+                          title="Edit your name"
+                        >
+                          ✏️
+                        </button>
+                      )}
+                  </>
+                )}
               </span>
               <div className="flex items-center gap-2">
                 {player.playerId === currentPlayerId && (

@@ -294,6 +294,24 @@ export class GameManager {
     return true;
   }
 
+  getPlayer(roomId: string, playerId: string): Player | undefined {
+    const room = this.getRoom(roomId);
+    if (!room) return undefined;
+
+    return room.players.get(playerId);
+  }
+
+  updatePlayerName(roomId: string, playerId: string, newName: string): boolean {
+    const room = this.getRoom(roomId);
+    if (!room) return false;
+
+    const player = room.players.get(playerId);
+    if (!player) return false;
+
+    player.playerName = newName;
+    return true;
+  }
+
   areAllPlayersReady(roomId: string): boolean {
     const room = this.getRoom(roomId);
 
