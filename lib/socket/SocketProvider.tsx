@@ -6,6 +6,7 @@ import { generateRandomPlayerName } from "@/lib/utils";
 
 // Generate a unique ID for this browser/player (persists across tabs and sessions)
 function getOrCreatePlayerId(): string {
+  if (typeof window === "undefined") return "";
   let playerId = localStorage.getItem("playerId");
   if (!playerId) {
     playerId = `player_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
@@ -16,6 +17,7 @@ function getOrCreatePlayerId(): string {
 
 // Generate a unique ID for this specific tab (only persists for this tab)
 function getOrCreateTabId(): string {
+  if (typeof window === "undefined") return "";
   let tabId = sessionStorage.getItem("tabId");
   if (!tabId) {
     tabId = `tab_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
@@ -88,7 +90,9 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const setPlayerName = (name: string | null) => {
     if (name) {
       setPlayerNameState(name);
-      localStorage.setItem("playerName", name);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("playerName", name);
+      }
     }
   };
 
