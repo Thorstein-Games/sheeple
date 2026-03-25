@@ -51,4 +51,31 @@ app.prepare().then(() => {
     .listen(port, () => {
       console.log(`> Ready on http://${hostname}:${port}`);
     });
+
+  // Graceful shutdown handling
+  const gracefulShutdown = (signal: string) => {
+    console.log(`\n${signal} received, closing server gracefully...`);
+    
+    // Close Socket.IO connections
+    io.close(() => {
+      console.log("Socket.IO connections closed");
+    });
+    
+    // Close HTTP server
+    httpServer.close(() => {
+      console.log("HTTP server closed");
+      process.exit(0);
+    });
+    
+    // Force shutdown after 5 seconds
+    setTimeout(() => {
+      console.error("Forced shutdown after timeout");
+      process.exit(1);
+    }, 5000);
+  };
+
+  // Handle shutdown signals
+  process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+  process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+  process.on("SIGHUP", () => gracefulShutdown("SIGHUP"));
 });

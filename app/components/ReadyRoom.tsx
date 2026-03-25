@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Socket } from "socket.io-client";
+import type { Room } from "colyseus.js";
 import { MIN_PLAYERS, MAX_PLAYERS } from "@/lib/constants";
 import { GameEvents } from "@/lib/socket/events";
 
@@ -21,6 +22,7 @@ interface ReadyRoomProps {
   currentPlayerId: string | undefined;
   hostId: string | undefined;
   socket: Socket | null;
+  room?: Room | null; // Colyseus room (preferred)
   onPlayerReady: () => void;
   onStartGame: () => void;
   onUpdatePlayerName: (newName: string) => void;
@@ -36,6 +38,7 @@ export default function ReadyRoom({
   currentPlayerId,
   hostId,
   socket,
+  room,
   onPlayerReady,
   onStartGame,
   onUpdatePlayerName,
@@ -54,7 +57,12 @@ export default function ReadyRoom({
   const canEditName = !readyPlayers.has(currentPlayerId || "");
 
   const handleAddFakePlayer = () => {
-    if (socket && isDev) {
+    if (!isDev) return;
+
+    // Prefer Colyseus room over socket.io
+    if (room) {
+      room.send("add_fake_player", {});
+    } else if (socket) {
       socket.emit(GameEvents.ADD_FAKE_PLAYER, { count: 1 });
     }
   };
@@ -215,7 +223,7 @@ export default function ReadyRoom({
             <p className="text-sm text-yellow-800 font-semibold">🔧 Dev Mode</p>
             <button
               onClick={handleAddFakePlayer}
-              disabled={!isConnected}
+              disabled={!isConnected && !room}
               className="bg-yellow-600 text-white px-3 py-1 rounded text-sm font-medium hover:bg-yellow-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
               + Add Fake Player

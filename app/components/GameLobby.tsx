@@ -2,8 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSocket } from "@/lib/socket/SocketProvider";
-import { GameEvents } from "@/lib/socket/events";
+import { useColyseus } from "@/lib/colyseus/ColyseusProvider";
+import {
+  joinLobby,
+  listRooms,
+  joinOrCreateGameRoom,
+} from "@/lib/colyseus/RoomService";
 import type {
   JoinGameData,
   PlayerJoinedData,
@@ -17,87 +21,88 @@ interface GameLobbyProps {
 
 export function GameLobby({ playerName }: GameLobbyProps) {
   const router = useRouter();
-  const { socket, isConnected, playerId, tabId } = useSocket();
+  const { client, isConnected, playerId, tabId } = useColyseus();
   const [roomId, setRoomId] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
   const [rooms, setRooms] = useState<RoomInfo[]>([]);
   const [hasJoinedLobby, setHasJoinedLobby] = useState(false);
+  const [lobbyRoom, setLobbyRoom] = useState<any>(null);
+
+  console.log("isConnected", isConnected);
 
   // Join the lobby room for chat purposes
   useEffect(() => {
-    if (!socket || !isConnected || !playerName || hasJoinedLobby) return;
+    if (!client || !isConnected || !playerName || hasJoinedLobby) return;
+
+    let room: any = null;
 
     // Join a special "lobby" room for chat
-    socket.emit(GameEvents.JOIN_GAME, {
-      playerName: playerName,
-      roomId: "lobby",
-      isPrivate: true, // Make it private so it doesn't show up in room lists
-      playerId,
-      tabId,
+    joinLobby(client, playerName, playerId, tabId).then((joinedRoom) => {
+      setHasJoinedLobby(true);
+      room = joinedRoom;
+      setLobbyRoom(joinedRoom);
+      
+      // Register message handler for lobby_joined
+      joinedRoom.onMessage('lobby_joined', (data: any) => {
+        console.log('Lobby joined:', data);
+      });
     });
 
-    setHasJoinedLobby(true);
-  }, [socket, isConnected, playerName, hasJoinedLobby, playerId, tabId]);
+    return () => {
+      // Cleanup: leave lobby room when component unmounts
+      if (room) {
+        room.leave();
+      }
+    };
+  }, [client, isConnected, playerName, hasJoinedLobby, playerId, tabId]);
 
   useEffect(() => {
-    if (!socket) return;
+    if (!client) return;
 
     // Request rooms list when connected
     if (isConnected) {
-      socket.emit(GameEvents.GET_ROOMS);
+      listRooms(client).then((rooms) => {
+        setRooms(rooms);
+      });
     }
 
-    socket.on(GameEvents.ROOMS_LIST, (data: RoomsListData) => {
-      setRooms(data.rooms);
-    });
-
-    socket.on(GameEvents.PLAYER_JOINED, (data: PlayerJoinedData) => {
-      // Don't navigate if it's the lobby room
-      if (data.roomId !== "lobby") {
-        router.push(`/room/${data.roomId}`);
-      }
-    });
-
-    socket.on(GameEvents.ROOM_STATE, (data: { roomId: string }) => {
-      // Don't navigate if it's the lobby room
-      if (data.roomId !== "lobby") {
-        router.push(`/room/${data.roomId}`);
-      }
-    });
-
-    socket.on(GameEvents.ERROR, (data: { message: string }) => {
-      console.error("Socket error:", data.message);
-      alert(`Error: ${data.message}`);
-    });
+    // Colyseus does not use socket.on/off, so you would listen to room events after joining a room.
+    // For lobby navigation, you would handle this in the room's onMessage/onStateChange handlers, which are not shown here.
 
     // Refresh rooms list every 30 seconds
     const interval = setInterval(() => {
-      if (socket && isConnected) {
-        socket.emit(GameEvents.GET_ROOMS);
+      if (client && isConnected) {
+        listRooms(client).then((rooms) => {
+          setRooms(rooms);
+        });
       }
     }, 30000);
 
     return () => {
-      socket.off(GameEvents.ROOMS_LIST);
-      socket.off(GameEvents.PLAYER_JOINED);
-      socket.off(GameEvents.ROOM_STATE);
-      socket.off(GameEvents.ERROR);
       clearInterval(interval);
     };
-  }, [socket, router, isConnected]);
+  }, [client, router, isConnected]);
 
-  const handleJoinGame = (targetRoomId?: string, forcePublic?: boolean) => {
-    if (!socket) return;
+  const handleJoinGame = async (
+    targetRoomId?: string,
+    forcePublic?: boolean,
+  ) => {
+    if (!client) return;
 
-    const data: JoinGameData = {
-      playerName: playerName,
-      roomId: targetRoomId || roomId.trim() || undefined,
-      isPrivate: forcePublic ? false : targetRoomId ? false : isPrivate,
-      playerId,
-      tabId,
-    };
-
-    socket.emit(GameEvents.JOIN_GAME, data);
+    try {
+      const room = await joinOrCreateGameRoom(client, playerName, {
+        roomId: targetRoomId || roomId,
+        isPrivate,
+        playerId,
+        tabId,
+        forcePublic,
+      });
+      if (room.roomId !== "lobby") {
+        router.push(`/room/${room.roomId}`);
+      }
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    }
   };
 
   return (

@@ -21,6 +21,7 @@ import type {
   HostChangedData,
   PlayerNameUpdatedData,
 } from "@/lib/socket/types";
+import { useColyseus, useRoom } from "@/lib/colyseus/ColyseusProvider";
 
 export default function RoomPage() {
   const params = useParams();
@@ -28,15 +29,16 @@ export default function RoomPage() {
   const {
     socket,
     isConnected,
-    playerName: contextPlayerName,
     setPlayerName,
     players,
     setPlayers,
     playerId,
     tabId,
   } = useSocket();
+  const { playerName, client, room: colyseusRoom } = useColyseus();
   const roomId = params.roomId as string;
 
+  const [localRoom, setLocalRoom] = useState<any>(null);
   const [isReady, setIsReady] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [currentRound, setCurrentRound] = useState<RoundStartData | null>(null);
@@ -62,6 +64,47 @@ export default function RoomPage() {
 
   // Ref to store the debounce timer
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Join Colyseus room if not already joined
+  useEffect(() => {
+    if (!client || !playerName || !roomId || localRoom || colyseusRoom) return;
+
+    const joinColyseusRoom = async () => {
+      try {
+        const room = await client.joinById(roomId, {
+          playerName,
+          playerId,
+          tabId,
+        });
+        setLocalRoom(room);
+        console.log(`Joined Colyseus room: ${roomId}`);
+
+        // Listen for players joining
+        room.onMessage("player_joined", (data: any) => {
+          console.log("Player joined:", data);
+        });
+
+        // Listen for errors
+        room.onMessage("error", (data: any) => {
+          console.error("Room error:", data.message);
+        });
+      } catch (error: any) {
+        console.error("Failed to join Colyseus room:", error);
+        // If room doesn't exist, redirect to lobby
+        if (error.code === 4212) {
+          router.push("/lobby");
+        }
+      }
+    };
+
+    joinColyseusRoom();
+
+    return () => {
+      if (localRoom) {
+        localRoom.leave().catch((err: any) => console.error("Error leaving room:", err));
+      }
+    };
+  }, [client, playerName, roomId, localRoom, colyseusRoom, playerId, tabId, router]);
 
   // Debounced auto-save effect for player answer
   useEffect(() => {
@@ -92,16 +135,16 @@ export default function RoomPage() {
   }, [playerAnswer, hasSubmitted, socket]);
 
   useEffect(() => {
-    if (!socket || !contextPlayerName || hasJoined) return;
+    if (!socket || !playerName || hasJoined) return;
 
     socket.emit(GameEvents.JOIN_GAME, {
-      playerName: contextPlayerName,
+      playerName: playerName,
       roomId,
       playerId,
       tabId,
     });
     setHasJoined(true);
-  }, [socket, contextPlayerName, roomId, hasJoined, playerId, tabId]);
+  }, [socket, playerName, roomId, hasJoined, playerId, tabId]);
 
   useEffect(() => {
     if (!socket) return;
@@ -381,7 +424,7 @@ export default function RoomPage() {
     setShowNextRoundButton(false); // Hide button after clicking
   };
 
-  if (!contextPlayerName) {
+  if (!playerName) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -414,6 +457,7 @@ export default function RoomPage() {
             currentPlayerId={socket?.id}
             hostId={hostId}
             socket={socket}
+            room={localRoom || colyseusRoom}
             onPlayerReady={handlePlayerReady}
             onStartGame={handleStartGame}
             onUpdatePlayerName={handleUpdatePlayerName}

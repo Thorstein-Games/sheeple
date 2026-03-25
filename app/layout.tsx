@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
-import { SocketProvider } from "@/lib/socket";
+import { ColyseusProvider } from "@/lib/colyseus/ColyseusProvider";
 import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
 
@@ -145,11 +145,11 @@ export default function RootLayout({
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
-        <SocketProvider>
+        <ColyseusProvider>
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
-        </SocketProvider>
+        </ColyseusProvider>
       </body>
     </html>
   );

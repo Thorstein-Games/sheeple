@@ -3,12 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useSocket } from "@/lib/socket/SocketProvider";
+import { useColyseus } from "@/lib/colyseus/ColyseusProvider";
 import styles from "./page.module.css";
 
 export default function Home() {
   const [playerNameInput, setPlayerNameInput] = useState("");
-  const { playerName, setPlayerName } = useSocket();
+  const { playerName, setPlayerName } = useColyseus();
   const router = useRouter();
 
   // Set the input to the default player name when it's available

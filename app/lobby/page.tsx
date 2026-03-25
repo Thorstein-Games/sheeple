@@ -1,15 +1,12 @@
 "use client";
 
-import { useSocket } from "@/lib/socket/SocketProvider";
 import { GameLobby } from "../components/GameLobby";
+import { useColyseus } from "@/lib/colyseus/ColyseusProvider";
 import { BackgroundGrazers } from "../components/BackgroundGrazers";
 import Chat from "../components/Chat";
 
 export default function LobbyPage() {
-  const { playerName } = useSocket();
-
-  // playerName is always set by SocketProvider (either from localStorage or generated randomly)
-  // so we can safely use it without checking
+  const { playerName } = useColyseus();
 
   return (
     <div className="relative min-h-screen py-12">

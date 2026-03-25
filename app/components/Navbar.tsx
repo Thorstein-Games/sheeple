@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useRouter, usePathname, useParams } from "next/navigation";
 import Link from "next/link";
-import { useSocket } from "@/lib/socket/SocketProvider";
+import { useColyseus } from "@/lib/colyseus/ColyseusProvider";
 
 export function Navbar() {
-  const { isConnected, playerName, setPlayerName } = useSocket();
+  const { isConnected, playerName, setPlayerName } = useColyseus();
   const router = useRouter();
   const params = useParams();
   const pathname = usePathname();
