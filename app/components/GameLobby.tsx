@@ -7,13 +7,8 @@ import {
   joinLobby,
   listRooms,
   joinOrCreateGameRoom,
+  type RoomInfo,
 } from "@/lib/colyseus/RoomService";
-import type {
-  JoinGameData,
-  PlayerJoinedData,
-  RoomInfo,
-  RoomsListData,
-} from "@/lib/socket/types";
 
 interface GameLobbyProps {
   playerName: string;
@@ -190,7 +185,7 @@ export function GameLobby({ playerName }: GameLobbyProps) {
                     </p>
                     <p className="text-sm text-gray-600">
                       {room.playerCount} / {room.maxPlayers} players
-                      {room.isGameStarted && (
+                      {room.gameStarted && (
                         <span className="ml-2 text-orange-600 font-medium">
                           • Game in progress
                         </span>
@@ -203,14 +198,14 @@ export function GameLobby({ playerName }: GameLobbyProps) {
                   disabled={
                     !isConnected ||
                     room.playerCount >= room.maxPlayers ||
-                    room.isGameStarted ||
+                    room.gameStarted ||
                     room.isPrivate
                   }
                   className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
                   {room.isPrivate
                     ? "Private"
-                    : room.isGameStarted
+                    : room.gameStarted
                       ? "In Progress"
                       : room.playerCount >= room.maxPlayers
                         ? "Full"

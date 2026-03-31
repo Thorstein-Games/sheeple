@@ -2,426 +2,318 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useSocket } from "@/lib/socket/SocketProvider";
-import { GameEvents } from "@/lib/socket/events";
+import { useColyseus } from "@/lib/colyseus/ColyseusProvider";
 import GameEndScreen from "@/app/components/GameEndScreen";
 import ReadyRoom from "@/app/components/ReadyRoom";
 import CountdownTimer from "@/app/components/CountdownTimer";
 import Chat from "@/app/components/Chat";
-import type {
-  PlayerJoinedData,
-  PlayerReconnectedData,
-  GameStartData,
-  RoundStartData,
-  RevealAnswersData,
-  UpdateScoresData,
-  GameEndData,
-  RoomStateData,
-  AnswerSubmittedData,
-  HostChangedData,
-  PlayerNameUpdatedData,
-} from "@/lib/socket/types";
-import { useColyseus, useRoom } from "@/lib/colyseus/ColyseusProvider";
+import type { Room } from "colyseus.js";
+
+interface Player {
+  sessionId: string;
+  playerName: string;
+  isReady: boolean;
+  score: number;
+}
+
+interface RoundData {
+  roundNumber: number;
+  prompt: string;
+  timeLimit: number;
+}
+
+interface RevealAnswersData {
+  answers: Array<{
+    sessionId: string;
+    playerName: string;
+    answer: string;
+    points: number;
+    count: number;
+  }>;
+}
+
+interface GameEndData {
+  results: Array<{
+    rank: number;
+    playerName: string;
+    score: number;
+  }>;
+  winner: string | null;
+}
 
 export default function RoomPage() {
   const params = useParams();
   const router = useRouter();
-  const {
-    socket,
-    isConnected,
-    setPlayerName,
-    players,
-    setPlayers,
-    playerId,
-    tabId,
-  } = useSocket();
-  const { playerName, client, room: colyseusRoom } = useColyseus();
+  const { playerName, client, sessionId: colyseusSessionId } = useColyseus();
   const roomId = params.roomId as string;
 
-  const [localRoom, setLocalRoom] = useState<any>(null);
+  const [room, setRoom] = useState<Room | null>(null);
+  const [players, setPlayers] = useState<Player[]>([]);
   const [isReady, setIsReady] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
-  const [currentRound, setCurrentRound] = useState<RoundStartData | null>(null);
+  const [currentRound, setCurrentRound] = useState<RoundData | null>(null);
   const [playerAnswer, setPlayerAnswer] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  const [savedAnswer, setSavedAnswer] = useState(""); // Track saved (but not submitted) answer
-  const [revealedAnswers, setRevealedAnswers] =
-    useState<RevealAnswersData | null>(null);
-  const [scores, setScores] = useState<UpdateScoresData | null>(null);
+  const [revealedAnswers, setRevealedAnswers] = useState<RevealAnswersData | null>(null);
   const [gameEnded, setGameEnded] = useState(false);
   const [gameEndData, setGameEndData] = useState<GameEndData | null>(null);
-  const [hasJoined, setHasJoined] = useState(false);
   const [readyPlayers, setReadyPlayers] = useState<Set<string>>(new Set());
-  const [previousWinners, setPreviousWinners] = useState<Set<string>>(
-    new Set(),
-  );
-  const [submittedPlayers, setSubmittedPlayers] = useState<Set<string>>(
-    new Set(),
-  );
-  const [showNextRoundButton, setShowNextRoundButton] = useState(false);
-  const [totalRounds, setTotalRounds] = useState(5);
+  const [submittedPlayers, setSubmittedPlayers] = useState<Set<string>>(new Set());
   const [hostId, setHostId] = useState<string | undefined>(undefined);
+  const [totalRounds, setTotalRounds] = useState(5);
+  const [isConnected, setIsConnected] = useState(false);
 
-  // Ref to store the debounce timer
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Join Colyseus room if not already joined
+  // Join Colyseus room
   useEffect(() => {
-    if (!client || !playerName || !roomId || localRoom || colyseusRoom) return;
+    if (!client || !playerName || !roomId || room) return;
 
-    const joinColyseusRoom = async () => {
+    const joinRoom = async () => {
       try {
-        const room = await client.joinById(roomId, {
+        const joinedRoom = await client.joinById(roomId, {
           playerName,
-          playerId,
-          tabId,
         });
-        setLocalRoom(room);
+        
+        // Register ALL message handlers FIRST, synchronously, before any other operations
+        // This ensures handlers are ready before server messages from onJoin() arrive
+        joinedRoom.onMessage("welcome", (data: any) => {
+          console.log("Welcome:", data);
+          setHostId(data.isHost ? data.sessionId : undefined);
+        });
+
+        joinedRoom.onMessage("game_started", (data: any) => {
+          console.log("Game started:", data);
+          setGameStarted(true);
+          setTotalRounds(data.totalRounds || 5);
+          setRevealedAnswers(null);
+          setGameEnded(false);
+        });
+
+        joinedRoom.onMessage("round_started", (data: any) => {
+          console.log("Round started:", data);
+          setCurrentRound({
+            roundNumber: data.round,
+            prompt: data.prompt,
+            timeLimit: data.duration,
+          });
+          setPlayerAnswer("");
+          setHasSubmitted(false);
+          setRevealedAnswers(null);
+          setSubmittedPlayers(new Set());
+        });
+
+        joinedRoom.onMessage("answer_submitted", (data: any) => {
+          console.log("Answer submitted:", data);
+          setHasSubmitted(true);
+        });
+
+        joinedRoom.onMessage("round_ended", (data: any) => {
+          console.log("Round ended:", data);
+          setRevealedAnswers({
+            answers: data.results.map((r: any) => ({
+              sessionId: "", // Not needed for display
+              playerName: r.playerName,
+              answer: r.answer,
+              points: r.points,
+              count: 1, // TODO: Get actual count from server
+            })),
+          });
+          
+          // Update player scores
+          updatePlayersList(joinedRoom);
+        });
+
+        joinedRoom.onMessage("game_ended", (data: any) => {
+          console.log("Game ended:", data);
+          setGameEnded(true);
+          setGameEndData(data);
+          setGameStarted(false);
+        });
+
+        joinedRoom.onMessage("player_ready", (data: any) => {
+          console.log("Player ready:", data);
+          setReadyPlayers((prev) => new Set(prev).add(data.sessionId));
+        });
+
+        joinedRoom.onMessage("host_changed", (data: any) => {
+          console.log("Host changed:", data);
+          setHostId(data.newHostId);
+        });
+
+        joinedRoom.onMessage("player_joined", (data: any) => {
+          console.log("Player joined:", data);
+          updatePlayersList(joinedRoom);
+        });
+
+        joinedRoom.onMessage("player_reconnected", (data: any) => {
+          console.log("Player reconnected:", data);
+        });
+
+        joinedRoom.onMessage("player_disconnected", (data: any) => {
+          console.log("Player disconnected:", data);
+        });
+
+        joinedRoom.onMessage("player_list", (data: any) => {
+          console.log("Player list:", data);
+          updatePlayersList(joinedRoom);
+        });
+
+        joinedRoom.onMessage("player_list_update", (data: any) => {
+          console.log("Player list update:", data);
+          updatePlayersList(joinedRoom);
+        });
+
+        joinedRoom.onMessage("error", (data: any) => {
+          console.error("Room error:", data.message);
+          alert(`Error: ${data.message}`);
+        });
+
+        // NOW set state and register state listeners (after all message handlers are registered)
+        setRoom(joinedRoom);
+        setIsConnected(true);
         console.log(`Joined Colyseus room: ${roomId}`);
 
-        // Listen for players joining
-        room.onMessage("player_joined", (data: any) => {
-          console.log("Player joined:", data);
-        });
+        // Set up state listeners (guard against undefined state.players)
+        if (joinedRoom.state.players) {
+          joinedRoom.state.players.onAdd((player: any, sessionId: string) => {
+            console.log("Player added:", player.playerName, sessionId);
+            updatePlayersList(joinedRoom);
+          });
 
-        // Listen for errors
-        room.onMessage("error", (data: any) => {
-          console.error("Room error:", data.message);
-        });
+          joinedRoom.state.players.onRemove((player: any, sessionId: string) => {
+            console.log("Player removed:", player.playerName, sessionId);
+            updatePlayersList(joinedRoom);
+          });
+
+          joinedRoom.state.players.onChange((player: any, sessionId: string) => {
+            console.log("Player changed:", player.playerName, sessionId);
+            updatePlayersList(joinedRoom);
+          });
+        }
+
+        // Initial player list update
+        updatePlayersList(joinedRoom);
+        
+        // Get host ID from state
+        if (joinedRoom.state.hostId) {
+          setHostId(joinedRoom.state.hostId);
+        }
+
+        // Check if game is already started
+        if (joinedRoom.state.gameStarted) {
+          setGameStarted(true);
+          setTotalRounds(joinedRoom.state.totalRounds || 5);
+          
+          // Check if round is active
+          if (joinedRoom.state.currentPrompt) {
+            setCurrentRound({
+              roundNumber: joinedRoom.state.currentRound,
+              prompt: joinedRoom.state.currentPrompt,
+              timeLimit: joinedRoom.state.roundDuration,
+            });
+          }
+        }
+
       } catch (error: any) {
         console.error("Failed to join Colyseus room:", error);
-        // If room doesn't exist, redirect to lobby
         if (error.code === 4212) {
           router.push("/lobby");
         }
       }
     };
 
-    joinColyseusRoom();
+    joinRoom();
 
     return () => {
-      if (localRoom) {
-        localRoom.leave().catch((err: any) => console.error("Error leaving room:", err));
+      // Cleanup will happen on component unmount
+    };
+  }, [client, playerName, roomId]);
+
+  // Cleanup room on unmount
+  useEffect(() => {
+    return () => {
+      if (room) {
+        room.leave().catch((err: any) => console.error("Error leaving room:", err));
       }
     };
-  }, [client, playerName, roomId, localRoom, colyseusRoom, playerId, tabId, router]);
+  }, [room]);
 
-  // Debounced auto-save effect for player answer
-  useEffect(() => {
-    // Clear any existing timer
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
-    // Don't save if answer is empty, already submitted, or no socket
-    if (!playerAnswer.trim() || hasSubmitted || !socket) {
+  // Helper to update players list from room state
+  const updatePlayersList = (currentRoom: Room) => {
+    const playerList: Player[] = [];
+    const readySet = new Set<string>();
+    
+    // Guard against undefined state.players (can happen before state sync completes)
+    if (!currentRoom.state.players) {
+      setPlayers(playerList);
+      setReadyPlayers(readySet);
       return;
     }
-
-    // Set a new timer to save after 1 second of no typing
-    debounceTimerRef.current = setTimeout(() => {
-      setSavedAnswer(playerAnswer.trim());
-      socket.emit(GameEvents.SAVE_ANSWER_DRAFT, {
-        answer: playerAnswer.trim(),
+    
+    currentRoom.state.players.forEach((player: any, sessionId: string) => {
+      playerList.push({
+        sessionId,
+        playerName: player.playerName,
+        isReady: player.isReady,
+        score: player.score || 0,
       });
-    }, 1000); // 1 second debounce
-
-    // Cleanup function
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, [playerAnswer, hasSubmitted, socket]);
-
-  useEffect(() => {
-    if (!socket || !playerName || hasJoined) return;
-
-    socket.emit(GameEvents.JOIN_GAME, {
-      playerName: playerName,
-      roomId,
-      playerId,
-      tabId,
-    });
-    setHasJoined(true);
-  }, [socket, playerName, roomId, hasJoined, playerId, tabId]);
-
-  useEffect(() => {
-    if (!socket) return;
-
-    const handlePlayerJoined = (data: PlayerJoinedData) => {
-      // Room state will be the source of truth, so we can just add new players
-      setPlayers((currentPlayers) => {
-        // Avoid duplicates
-        if (currentPlayers.some((p) => p.playerId === data.playerId)) {
-          return currentPlayers;
-        }
-        return [
-          ...currentPlayers,
-          {
-            playerId: data.playerId,
-            playerName: data.playerName,
-            isReady: false,
-          },
-        ];
-      });
-    };
-
-    const handlePlayerReconnected = (data: {
-      oldPlayerId: string;
-      newPlayerId: string;
-      playerName: string;
-    }) => {
-      console.log("Player reconnected:", data);
-      // Update player ID for the reconnected player
-      setPlayers((currentPlayers) =>
-        currentPlayers.map((p) =>
-          p.playerId === data.oldPlayerId
-            ? { ...p, playerId: data.newPlayerId }
-            : p,
-        ),
-      );
-
-      // Update ready players set if needed
-      setReadyPlayers((prev) => {
-        if (prev.has(data.oldPlayerId)) {
-          const newSet = new Set(prev);
-          newSet.delete(data.oldPlayerId);
-          newSet.add(data.newPlayerId);
-          return newSet;
-        }
-        return prev;
-      });
-
-      // Update submitted players set if needed
-      setSubmittedPlayers((prev) => {
-        if (prev.has(data.oldPlayerId)) {
-          const newSet = new Set(prev);
-          newSet.delete(data.oldPlayerId);
-          newSet.add(data.newPlayerId);
-          return newSet;
-        }
-        return prev;
-      });
-    };
-
-    const handleRoomState = (data: RoomStateData) => {
-      setPlayers(
-        data.players.map((p) => ({
-          playerId: p.playerId,
-          playerName: p.playerName,
-          isReady: p.isReady,
-        })),
-      );
-
-      const readyPlayerIds = data.players
-        .filter((p) => p.isReady)
-        .map((p) => p.playerId);
-      setReadyPlayers(new Set(readyPlayerIds));
-
-      // Update host ID
-      if (data.hostId) {
-        setHostId(data.hostId);
-      }
-
-      // Update previous winners
-      if (data.previousWinners && data.previousWinners.length > 0) {
-        setPreviousWinners(new Set(data.previousWinners));
-      }
-    };
-
-    const handlePlayerReadyStatus = (data: {
-      playerId: string;
-      playerName: string;
-    }) => {
-      setReadyPlayers((prev) => new Set(prev).add(data.playerId));
-    };
-
-    const handlePlayerLeft = (data: { playerId: string }) => {
-      console.log("Player left:", data);
-      setPlayers((currentPlayers) =>
-        currentPlayers.filter((p) => p.playerId !== data.playerId),
-      );
-      setReadyPlayers((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(data.playerId);
-        return newSet;
-      });
-    };
-
-    const handleHostChanged = (data: {
-      newHostId: string;
-      newHostName: string;
-    }) => {
-      console.log("Host changed:", data);
-      setHostId(data.newHostId);
-    };
-
-    const handlePlayerNameUpdated = (data: PlayerNameUpdatedData) => {
-      setPlayers((currentPlayers) =>
-        currentPlayers.map((p) =>
-          p.playerId === data.playerId ? { ...p, playerName: data.newName } : p,
-        ),
-      );
-
-      // Update the context player name if it's the current player
-      if (data.playerId === socket?.id) {
-        setPlayerName(data.newName);
-      }
-    };
-
-    socket.on(GameEvents.PLAYER_JOINED, handlePlayerJoined);
-    socket.on(GameEvents.PLAYER_RECONNECTED, handlePlayerReconnected);
-    socket.on(GameEvents.ROOM_STATE, handleRoomState);
-    socket.on(GameEvents.PLAYER_READY_STATUS, handlePlayerReadyStatus);
-    socket.on(GameEvents.PLAYER_LEFT, handlePlayerLeft);
-    socket.on(GameEvents.HOST_CHANGED, handleHostChanged);
-    socket.on(GameEvents.PLAYER_NAME_UPDATED, handlePlayerNameUpdated);
-
-    socket.on(GameEvents.GAME_START, (data: GameStartData) => {
-      console.log("Game starting:", data);
-      setGameStarted(true);
-      if (data.totalRounds) {
-        setTotalRounds(data.totalRounds);
+      
+      if (player.isReady) {
+        readySet.add(sessionId);
       }
     });
+    
+    setPlayers(playerList);
+    setReadyPlayers(readySet);
+  };
 
-    socket.on(GameEvents.ROUND_START, (data: RoundStartData) => {
-      console.log("Round starting:", data);
-      setCurrentRound(data);
-      setPlayerAnswer("");
-      setSavedAnswer("");
-      setHasSubmitted(false);
-      setRevealedAnswers(null);
-      setSubmittedPlayers(new Set()); // Reset submission tracking for new round
-      setShowNextRoundButton(false); // Hide button when new round starts
-    });
-
-    socket.on(GameEvents.ANSWER_SUBMITTED, (data: AnswerSubmittedData) => {
-      if (data.playerId === socket.id) {
-        setHasSubmitted(true);
-      }
-      // Track all player submissions
-      setSubmittedPlayers((prev) => new Set(prev).add(data.playerId));
-    });
-
-    socket.on(GameEvents.REVEAL_ANSWERS, (data: RevealAnswersData) => {
-      console.log("Revealing answers:", data);
-      setRevealedAnswers(data);
-    });
-
-    socket.on(GameEvents.UPDATE_SCORES, (data: UpdateScoresData) => {
-      console.log("Scores updated:", data);
-      setScores(data);
-      // Show "Next Round" button after scores are revealed
-      setShowNextRoundButton(true);
-    });
-
-    socket.on(GameEvents.GAME_END, (data: GameEndData) => {
-      console.log("Game ended:", data);
-      setGameEnded(true);
-      setGameEndData(data);
-    });
-
-    socket.on(GameEvents.ERROR, (data: { message: string }) => {
-      console.error("Socket error:", data.message);
-      alert(`Error: ${data.message}`);
-    });
-
-    return () => {
-      socket.off(GameEvents.PLAYER_JOINED);
-      socket.off(GameEvents.PLAYER_RECONNECTED);
-      socket.off(GameEvents.ROOM_STATE);
-      socket.off(GameEvents.PLAYER_LEFT);
-      socket.off(GameEvents.HOST_CHANGED);
-      socket.off(GameEvents.PLAYER_NAME_UPDATED);
-      socket.off(GameEvents.GAME_START);
-      socket.off(GameEvents.ROUND_START);
-      socket.off(GameEvents.ANSWER_SUBMITTED);
-      socket.off(GameEvents.REVEAL_ANSWERS);
-      socket.off(GameEvents.UPDATE_SCORES);
-      socket.off(GameEvents.GAME_END);
-      socket.off(GameEvents.ERROR);
-      socket.off(GameEvents.PLAYER_READY_STATUS);
-    };
-  }, [socket]);
-
+  // Event handlers
   const handlePlayerReady = () => {
-    if (!socket || !socket.id) return;
-    socket.emit(GameEvents.PLAYER_READY);
+    if (!room) return;
+    room.send("player_ready", {});
     setIsReady(true);
-    setReadyPlayers((prev) => new Set(prev).add(socket.id!));
   };
 
   const handleStartGame = () => {
-    if (!socket) return;
-    socket.emit(GameEvents.START_GAME);
+    if (!room) return;
+    room.send("start_game", {});
   };
 
   const handleUpdatePlayerName = (newName: string) => {
-    if (!socket) return;
-    socket.emit(GameEvents.UPDATE_PLAYER_NAME, { newName });
+    if (!room) return;
+    room.send("update_player_name", { newName });
   };
 
   const handleSubmitAnswer = () => {
-    if (!socket || !playerAnswer.trim() || hasSubmitted) return;
-    socket.emit(GameEvents.SUBMIT_ANSWER, {
-      answer: playerAnswer.trim(),
-    });
-    setSavedAnswer(playerAnswer.trim());
-  };
-
-  const handleSaveAnswer = () => {
-    // Immediate save on blur (cancels any pending debounce)
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-      debounceTimerRef.current = null;
-    }
-
-    if (playerAnswer.trim() && !hasSubmitted && socket) {
-      setSavedAnswer(playerAnswer.trim());
-      socket.emit(GameEvents.SAVE_ANSWER_DRAFT, {
-        answer: playerAnswer.trim(),
-      });
-    }
+    if (!room || !playerAnswer.trim() || hasSubmitted) return;
+    room.send("submit_answer", { answer: playerAnswer.trim() });
   };
 
   const handleTimeUp = () => {
-    // Auto-submit saved answer (or current answer) when time runs out
-    if (!hasSubmitted && socket) {
-      const answer = savedAnswer || playerAnswer.trim() || "[No answer]";
-      socket.emit(GameEvents.SUBMIT_ANSWER, {
-        answer: answer,
-      });
-      // Update local state to match what was submitted
+    if (!hasSubmitted && room) {
+      const answer = playerAnswer.trim() || "[No answer]";
+      room.send("submit_answer", { answer });
       setPlayerAnswer(answer);
     }
   };
 
   const handlePlayAgain = () => {
-    // Reset game state to go back to ready screen
     setGameEnded(false);
     setGameEndData(null);
     setGameStarted(false);
     setCurrentRound(null);
     setPlayerAnswer("");
-    setSavedAnswer("");
     setHasSubmitted(false);
     setRevealedAnswers(null);
-    setScores(null);
     setIsReady(true);
-    setShowNextRoundButton(false);
-
-    // Add current player to ready players
-    if (socket?.id) {
-      setReadyPlayers((prev) => new Set(prev).add(socket.id!));
+    
+    if (room) {
+      room.send("player_ready", {});
     }
   };
 
   const handleNextRound = () => {
-    if (!socket) return;
-    socket.emit(GameEvents.NEXT_ROUND);
-    setShowNextRoundButton(false); // Hide button after clicking
+    if (!room) return;
+    room.send("next_round", {});
   };
 
   if (!playerName) {
@@ -441,23 +333,26 @@ export default function RoomPage() {
         {gameEnded && gameEndData ? (
           <GameEndScreen
             gameEndData={gameEndData}
-            currentPlayerId={socket?.id}
+            currentPlayerId={colyseusSessionId || undefined}
             hostId={hostId}
-            socket={socket}
+            room={room}
             onPlayAgain={handlePlayAgain}
           />
         ) : !gameStarted ? (
           <ReadyRoom
-            players={players}
+            players={players.map(p => ({
+              playerId: p.sessionId,
+              playerName: p.playerName,
+              isReady: p.isReady,
+            }))}
             roomId={roomId}
             isConnected={isConnected}
             isReady={isReady}
             readyPlayers={readyPlayers}
-            previousWinners={previousWinners}
-            currentPlayerId={socket?.id}
+            previousWinners={new Set()}
+            currentPlayerId={colyseusSessionId || undefined}
             hostId={hostId}
-            socket={socket}
-            room={localRoom || colyseusRoom}
+            room={room}
             onPlayerReady={handlePlayerReady}
             onStartGame={handleStartGame}
             onUpdatePlayerName={handleUpdatePlayerName}
@@ -469,7 +364,7 @@ export default function RoomPage() {
                 <div className="mb-6 flex justify-between items-start">
                   <div className="flex-1">
                     <p className="text-sm text-gray-600 mb-2">
-                      Round {currentRound.roundNumber}
+                      Round {currentRound.roundNumber} of {totalRounds}
                     </p>
                     <h2 className="text-3xl font-bold text-gray-900 mb-4">
                       {currentRound.prompt}
@@ -482,7 +377,7 @@ export default function RoomPage() {
                     <CountdownTimer
                       timeLimit={currentRound.timeLimit}
                       onTimeUp={handleTimeUp}
-                      socket={socket}
+                      room={room}
                       currentRound={currentRound.roundNumber}
                     />
                   </div>
@@ -533,24 +428,22 @@ export default function RoomPage() {
                   </h3>
                   <div className="grid grid-cols-2 gap-2">
                     {players.map((player) => {
-                      const hasSubmitted = submittedPlayers.has(
-                        player.playerId,
-                      );
+                      const hasPlayerSubmitted = submittedPlayers.has(player.sessionId);
                       return (
                         <div
-                          key={player.playerId}
+                          key={player.sessionId}
                           className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
-                            hasSubmitted
+                            hasPlayerSubmitted
                               ? "bg-green-100 text-green-700"
                               : "bg-gray-100 text-gray-600"
                           }`}
                         >
                           <span className="text-lg">
-                            {hasSubmitted ? "✓" : "○"}
+                            {hasPlayerSubmitted ? "✓" : "○"}
                           </span>
                           <span className="text-sm truncate">
-                            {player?.playerName || "Unknown Player"}
-                            {player?.playerId === socket?.id && " (You)"}
+                            {player.playerName}
+                            {player.sessionId === colyseusSessionId && " (You)"}
                           </span>
                         </div>
                       );
@@ -565,9 +458,9 @@ export default function RoomPage() {
                 <h2 className="text-2xl font-bold mb-6">Round Results</h2>
 
                 <div className="space-y-4 mb-6">
-                  {revealedAnswers.answers.map((answer) => (
+                  {revealedAnswers.answers.map((answer, index) => (
                     <div
-                      key={answer.playerId}
+                      key={index}
                       className={`border-2 rounded-lg p-4 ${
                         answer.points > 0
                           ? "bg-green-50 border-green-400"
@@ -577,23 +470,13 @@ export default function RoomPage() {
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <p className="font-semibold text-gray-900 flex items-center gap-2">
-                            {answer?.playerName || "Unknown Player"}
-                            {answer.playerId === socket?.id && (
-                              <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                                You
-                              </span>
-                            )}
+                            {answer.playerName}
                           </p>
                           <p className="text-2xl mt-2 font-medium">
                             {answer.answer}
                           </p>
                         </div>
                         <div className="text-right">
-                          {answer.count > 1 && (
-                            <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold mb-1">
-                              {answer.count} players matched!
-                            </div>
-                          )}
                           <div
                             className={`text-2xl font-bold ${
                               answer.points > 0
@@ -609,34 +492,29 @@ export default function RoomPage() {
                   ))}
                 </div>
 
-                {scores && (
-                  <div className="mt-6 bg-gray-100 rounded-lg p-4">
-                    <h3 className="font-semibold mb-2">Current Scores</h3>
-                    <div className="space-y-2">
-                      {Object.entries(scores.scores)
-                        .sort(([, a], [, b]) => b - a)
-                        .map(([playerId, score]) => {
-                          const player = players.find(
-                            (p) => p.playerId === playerId,
-                          );
-                          return (
-                            <div
-                              key={playerId}
-                              className="flex justify-between"
-                            >
-                              <span>{player?.playerName || playerId}</span>
-                              <span className="font-bold">{score} pts</span>
-                            </div>
-                          );
-                        })}
-                    </div>
+                {/* Current Scores */}
+                <div className="mt-6 bg-gray-100 rounded-lg p-4">
+                  <h3 className="font-semibold mb-2">Current Scores</h3>
+                  <div className="space-y-2">
+                    {[...players]
+                      .sort((a, b) => b.score - a.score)
+                      .map((player) => (
+                        <div
+                          key={player.sessionId}
+                          className="flex justify-between"
+                        >
+                          <span>
+                            {player.playerName}
+                            {player.sessionId === colyseusSessionId && " (You)"}
+                          </span>
+                          <span className="font-bold">{player.score} pts</span>
+                        </div>
+                      ))}
                   </div>
-                )}
+                </div>
 
-                {showNextRoundButton &&
-                  currentRound &&
-                  currentRound.roundNumber < totalRounds &&
-                  (socket?.id === hostId ? (
+                {currentRound && currentRound.roundNumber < totalRounds &&
+                  (colyseusSessionId === hostId ? (
                     <button
                       onClick={handleNextRound}
                       className="w-full mt-6 bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-500 transition-colors"

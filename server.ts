@@ -1,9 +1,6 @@
 import { createServer } from "http";
 import { parse } from "url";
 import next from "next";
-import { Server as SocketIOServer } from "socket.io";
-import { setupSocketHandlers } from "./lib/socket/handlers";
-import { setupDevMode } from "./lib/game/devMode";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
@@ -26,22 +23,6 @@ app.prepare().then(() => {
     }
   });
 
-  // Create Socket.IO server
-  const io = new SocketIOServer(httpServer, {
-    cors: {
-      origin: dev ? "http://localhost:3000" : undefined,
-      methods: ["GET", "POST"],
-    },
-  });
-
-  // Setup socket event handlers
-  setupSocketHandlers(io);
-
-  // Setup dev mode with fake players if in development
-  if (dev) {
-    setupDevMode(io);
-  }
-
   // Start server
   httpServer
     .once("error", (err) => {
@@ -55,11 +36,6 @@ app.prepare().then(() => {
   // Graceful shutdown handling
   const gracefulShutdown = (signal: string) => {
     console.log(`\n${signal} received, closing server gracefully...`);
-    
-    // Close Socket.IO connections
-    io.close(() => {
-      console.log("Socket.IO connections closed");
-    });
     
     // Close HTTP server
     httpServer.close(() => {

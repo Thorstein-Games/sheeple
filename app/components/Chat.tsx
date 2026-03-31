@@ -1,19 +1,24 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useSocket } from "@/lib/socket/SocketProvider";
-import { GameEvents } from "@/lib/socket/events";
-import type { NewMessageData } from "@/lib/socket/types";
+import { useColyseus } from "@/lib/colyseus/ColyseusProvider";
+
+interface ChatMessage {
+  playerName: string;
+  sessionId: string;
+  message: string;
+  timestamp: number;
+}
 
 interface ChatProps {
   roomId: string;
 }
 
 export default function Chat({ roomId }: ChatProps) {
-  const { socket } = useSocket();
+  const { room, sessionId } = useColyseus();
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<NewMessageData[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -33,9 +38,9 @@ export default function Chat({ roomId }: ChatProps) {
   }, [isOpen]);
 
   useEffect(() => {
-    if (!socket) return;
+    if (!room) return;
 
-    const handleNewMessage = (data: NewMessageData) => {
+    const handleNewMessage = (data: ChatMessage) => {
       setMessages((prev) => [...prev, data]);
 
       // Show unread indicator if chat is closed
@@ -44,19 +49,19 @@ export default function Chat({ roomId }: ChatProps) {
       }
     };
 
-    socket.on(GameEvents.NEW_MESSAGE, handleNewMessage);
+    room.onMessage("chat_message", handleNewMessage);
 
     return () => {
-      socket.off(GameEvents.NEW_MESSAGE, handleNewMessage);
+      // Colyseus doesn't have an off method, messages are cleaned up on room leave
     };
-  }, [socket, isOpen]);
+  }, [room, isOpen]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!socket || !message.trim()) return;
+    if (!room || !message.trim()) return;
 
-    socket.emit(GameEvents.SEND_MESSAGE, {
+    room.send("chat_message", {
       message: message.trim(),
     });
 
@@ -119,12 +124,12 @@ export default function Chat({ roomId }: ChatProps) {
                 <div
                   key={index}
                   className={`flex flex-col ${
-                    msg.playerId === socket?.id ? "items-end" : "items-start"
+                    msg.sessionId === sessionId ? "items-end" : "items-start"
                   }`}
                 >
                   <div
                     className={`max-w-[75%] rounded-lg px-3 py-2 ${
-                      msg.playerId === socket?.id
+                      msg.sessionId === sessionId
                         ? "bg-blue-600 text-white"
                         : "bg-gray-200 text-gray-900"
                     }`}
@@ -214,3 +219,4 @@ export default function Chat({ roomId }: ChatProps) {
     </div>
   );
 }
+

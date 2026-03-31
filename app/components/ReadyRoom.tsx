@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { Socket } from "socket.io-client";
 import type { Room } from "colyseus.js";
 import { MIN_PLAYERS, MAX_PLAYERS } from "@/lib/constants";
-import { GameEvents } from "@/lib/socket/events";
 
 interface Player {
   playerId: string;
@@ -21,8 +19,7 @@ interface ReadyRoomProps {
   previousWinners: Set<string>;
   currentPlayerId: string | undefined;
   hostId: string | undefined;
-  socket: Socket | null;
-  room?: Room | null; // Colyseus room (preferred)
+  room: Room | null;
   onPlayerReady: () => void;
   onStartGame: () => void;
   onUpdatePlayerName: (newName: string) => void;
@@ -37,7 +34,6 @@ export default function ReadyRoom({
   previousWinners,
   currentPlayerId,
   hostId,
-  socket,
   room,
   onPlayerReady,
   onStartGame,
@@ -57,14 +53,8 @@ export default function ReadyRoom({
   const canEditName = !readyPlayers.has(currentPlayerId || "");
 
   const handleAddFakePlayer = () => {
-    if (!isDev) return;
-
-    // Prefer Colyseus room over socket.io
-    if (room) {
-      room.send("add_fake_player", {});
-    } else if (socket) {
-      socket.emit(GameEvents.ADD_FAKE_PLAYER, { count: 1 });
-    }
+    if (!isDev || !room) return;
+    room.send("add_fake_player", {});
   };
 
   const handleCopyRoomUrl = async () => {
