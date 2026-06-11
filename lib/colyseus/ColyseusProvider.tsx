@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useRef } from "react";
 import * as Colyseus from "colyseus.js";
+import type { ClientWithHTTPAPI } from "@/lib/colyseus/types";
 import { generateRandomPlayerName } from "@/lib/utils";
 import { getGameServerUrl } from "@/lib/config/gameConfig";
 
@@ -46,7 +47,7 @@ export interface Player {
 type SetPlayersAction = Player[] | ((prevPlayers: Player[]) => Player[]);
 
 interface ColyseusContextType {
-  client: Colyseus.Client | null;
+  client: ClientWithHTTPAPI | null;
   room: Colyseus.Room | null;
   isConnected: boolean;
   playerName: string | null;
@@ -72,7 +73,7 @@ const ColyseusContext = createContext<ColyseusContextType>({
 });
 
 export function ColyseusProvider({ children }: { children: React.ReactNode }) {
-  const [client, setClient] = useState<Colyseus.Client | null>(null);
+  const [client, setClient] = useState<ClientWithHTTPAPI | null>(null);
   const [room, setRoom] = useState<Colyseus.Room | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [playerName, setPlayerNameState] = useState<string | null>(null);
@@ -80,7 +81,7 @@ export function ColyseusProvider({ children }: { children: React.ReactNode }) {
   const [playerId] = useState<string>(getOrCreatePlayerId());
   const [tabId] = useState<string>(getOrCreateTabId());
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const clientRef = useRef<Colyseus.Client | null>(null);
+  const clientRef = useRef<ClientWithHTTPAPI | null>(null);
 
   // Wrapper to match our type signature
   const setPlayers = (action: SetPlayersAction) => {
@@ -120,7 +121,7 @@ export function ColyseusProvider({ children }: { children: React.ReactNode }) {
     console.log(`Connecting to Colyseus server at ${gameServerUrl}`);
 
     try {
-      const colyseusClient = new Colyseus.Client(gameServerUrl);
+      const colyseusClient = new Colyseus.Client(gameServerUrl) as ClientWithHTTPAPI;
       setClient(colyseusClient);
       clientRef.current = colyseusClient;
       setIsConnected(true);

@@ -2,6 +2,7 @@
 // Centralized helper for Colyseus room operations
 
 import type { Client } from "colyseus.js";
+import type { ClientWithHTTPAPI } from "./types";
 import { SheepleState } from "./schema/SheepleState";
 import type { RoomAvailable, RoomInfo } from "@/shared/schema/RoomMetadata";
 import { toRoomInfo } from "@/shared/schema/RoomMetadata";
@@ -24,11 +25,11 @@ export async function joinLobby(
   return room;
 }
 
-export async function listRooms(client: Client): Promise<RoomInfo[]> {
+export async function listRooms(client: ClientWithHTTPAPI): Promise<RoomInfo[]> {
   // Use HTTP client to fetch rooms from matchmaker
   try {
-    const response = await (client as any).getAvailableRooms("sheeple_game");
-    return response.map((room: any) => toRoomInfo(room as RoomAvailable));
+    const response = await client.getAvailableRooms("sheeple_game");
+    return response.map((room) => toRoomInfo(room));
   } catch (error) {
     console.error("Error listing rooms:", error);
     return [];
