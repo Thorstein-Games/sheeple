@@ -23,8 +23,6 @@ export function GameLobby({ playerName }: GameLobbyProps) {
   const [hasJoinedLobby, setHasJoinedLobby] = useState(false);
   const [lobbyRoom, setLobbyRoom] = useState<any>(null);
 
-  console.log("isConnected", isConnected);
-
   // Join the lobby room for chat purposes
   useEffect(() => {
     if (!client || !isConnected || !playerName || hasJoinedLobby) return;
