@@ -167,7 +167,9 @@ export default function RoomPage() {
           alert(`Error: ${data.message}`);
         });
 
-        // NOW set state and register state listeners (after all message handlers are registered)
+        // All handlers registered — signal the server it can send welcome + player_list.
+        joinedRoom.send("client_ready", {});
+
         setRoom(joinedRoom);
         setIsConnected(true);
         console.log(`Joined Colyseus room: ${roomId}`);

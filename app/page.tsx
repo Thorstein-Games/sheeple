@@ -4,11 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useColyseus } from "@/lib/colyseus/ColyseusProvider";
+import { joinOrCreateGameRoom } from "@/lib/colyseus/RoomService";
 import styles from "./page.module.css";
 
 export default function Home() {
   const [playerNameInput, setPlayerNameInput] = useState("");
-  const { playerName, setPlayerName } = useColyseus();
+  const { playerName, setPlayerName, client } = useColyseus();
   const router = useRouter();
 
   // Set the input to the default player name when it's available
@@ -96,12 +97,20 @@ export default function Home() {
                   🧪 Dev Mode
                 </p>
                 <button
-                  onClick={() => {
-                    if (!playerNameInput.trim()) return;
-                    setPlayerName(playerNameInput.trim());
-                    router.push("/room/DEV001");
+                  onClick={async () => {
+                    if (!playerNameInput.trim() || !client) return;
+                    const name = playerNameInput.trim();
+                    setPlayerName(name);
+                    try {
+                      const room = await joinOrCreateGameRoom(client, name);
+                      const targetRoomId = room.roomId;
+                      await room.leave();
+                      router.push(`/room/${targetRoomId}`);
+                    } catch (err: any) {
+                      alert(`Error creating dev room: ${err.message}`);
+                    }
                   }}
-                  disabled={!playerNameInput.trim()}
+                  disabled={!playerNameInput.trim() || !client}
                   className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-red-600 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
                   Join Test Room (5 Bots)

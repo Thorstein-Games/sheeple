@@ -73,8 +73,10 @@ export function GameLobby({ playerName }: GameLobbyProps) {
         tabId,
         forcePublic,
       });
-      if (room.roomId !== "lobby") {
-        router.push(`/room/${room.roomId}`);
+      const targetId = room.roomId;
+      await room.leave();
+      if (targetId !== "lobby") {
+        router.push(`/room/${targetId}`);
       }
     } catch (err: any) {
       alert(`Error: ${err.message}`);
