@@ -62,10 +62,13 @@ export default function RoomPage() {
   const [hostId, setHostId] = useState<string | undefined>(undefined);
   const [totalRounds, setTotalRounds] = useState(5);
   const [isConnected, setIsConnected] = useState(false);
+  const joiningRef = useRef(false);
 
   // Join Colyseus room
   useEffect(() => {
-    if (!client || !playerName || !roomId || room) return;
+    if (!client || !playerName || !roomId || room || joiningRef.current) return;
+
+    joiningRef.current = true;
 
     const joinRoom = async () => {
       try {
@@ -154,12 +157,34 @@ export default function RoomPage() {
 
         joinedRoom.onMessage("player_list", (data: any) => {
           console.log("Player list:", data);
-          updatePlayersList(joinedRoom);
+          if (data?.players) {
+            setPlayers(data.players.map((p: any) => ({
+              sessionId: p.sessionId,
+              playerName: p.playerName,
+              isReady: p.isReady,
+              score: p.score || 0,
+            })));
+            setReadyPlayers(new Set(data.players.filter((p: any) => p.isReady).map((p: any) => p.sessionId as string)));
+            if (data.hostId) setHostId(data.hostId);
+          } else {
+            updatePlayersList(joinedRoom);
+          }
         });
 
         joinedRoom.onMessage("player_list_update", (data: any) => {
           console.log("Player list update:", data);
-          updatePlayersList(joinedRoom);
+          if (data?.players) {
+            setPlayers(data.players.map((p: any) => ({
+              sessionId: p.sessionId,
+              playerName: p.playerName,
+              isReady: p.isReady,
+              score: p.score || 0,
+            })));
+            setReadyPlayers(new Set(data.players.filter((p: any) => p.isReady).map((p: any) => p.sessionId as string)));
+            if (data.hostId) setHostId(data.hostId);
+          } else {
+            updatePlayersList(joinedRoom);
+          }
         });
 
         joinedRoom.onMessage("error", (data: any) => {
@@ -217,6 +242,7 @@ export default function RoomPage() {
 
       } catch (error: any) {
         console.error("Failed to join Colyseus room:", error);
+        joiningRef.current = false;
         if (error.code === 4212) {
           router.push("/lobby");
         }
@@ -271,7 +297,7 @@ export default function RoomPage() {
   // Event handlers
   const handlePlayerReady = () => {
     if (!room) return;
-    room.send("player_ready", {});
+    room.send("ready", {});
     setIsReady(true);
   };
 

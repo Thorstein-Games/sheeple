@@ -104,6 +104,11 @@ export default function Home() {
                     try {
                       const room = await joinOrCreateGameRoom(client, name);
                       const targetRoomId = room.roomId;
+                      for (let i = 0; i < 5; i++) {
+                        room.send("add_fake_player", {});
+                      }
+                      // Brief pause so the server processes bot messages before we disconnect
+                      await new Promise((r) => setTimeout(r, 200));
                       await room.leave();
                       router.push(`/room/${targetRoomId}`);
                     } catch (err: any) {
