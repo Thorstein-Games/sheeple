@@ -5,10 +5,9 @@ import { useRouter } from "next/navigation";
 import { useColyseus } from "@/lib/colyseus/ColyseusProvider";
 import {
   joinLobby,
-  listRooms,
   joinOrCreateGameRoom,
-  type RoomInfo,
 } from "@/lib/colyseus/RoomService";
+import type { RoomInfo } from "@/shared/schema/RoomMetadata";
 
 interface GameLobbyProps {
   playerName: string;
@@ -21,60 +20,44 @@ export function GameLobby({ playerName }: GameLobbyProps) {
   const [isPrivate, setIsPrivate] = useState(false);
   const [rooms, setRooms] = useState<RoomInfo[]>([]);
   const [hasJoinedLobby, setHasJoinedLobby] = useState(false);
-  const [lobbyRoom, setLobbyRoom] = useState<any>(null);
 
-  // Join the lobby room for chat purposes
+  // Join the lobby room and use WebSocket messages for room listing
   useEffect(() => {
     if (!client || !isConnected || !playerName || hasJoinedLobby) return;
 
     let room: any = null;
+    let refreshInterval: ReturnType<typeof setInterval>;
 
-    // Join a special "lobby" room for chat
     joinLobby(client, playerName, playerId, tabId).then((joinedRoom) => {
       setHasJoinedLobby(true);
       room = joinedRoom;
-      setLobbyRoom(joinedRoom);
-      
-      // Register message handler for lobby_joined
+
       joinedRoom.onMessage('lobby_joined', (data: any) => {
         console.log('Lobby joined:', data);
       });
+
+      joinedRoom.onMessage('room_list', (data: any) => {
+        setRooms((data.rooms || []).map((r: any): RoomInfo => ({
+          roomId: r.roomId,
+          roomCode: r.roomId,
+          playerCount: r.playerCount,
+          maxPlayers: r.maxPlayers,
+          gameStarted: r.isStarted,
+          isPrivate: false,
+          hostName: r.hostName,
+          gameType: r.roomType,
+        })));
+      });
+
+      joinedRoom.send('list_rooms', {});
+      refreshInterval = setInterval(() => joinedRoom.send('list_rooms', {}), 30000);
     });
 
     return () => {
-      // Cleanup: leave lobby room when component unmounts
-      if (room) {
-        room.leave();
-      }
+      clearInterval(refreshInterval);
+      if (room) room.leave();
     };
   }, [client, isConnected, playerName, hasJoinedLobby, playerId, tabId]);
-
-  useEffect(() => {
-    if (!client) return;
-
-    // Request rooms list when connected
-    if (isConnected) {
-      listRooms(client).then((rooms) => {
-        setRooms(rooms);
-      });
-    }
-
-    // Colyseus does not use socket.on/off, so you would listen to room events after joining a room.
-    // For lobby navigation, you would handle this in the room's onMessage/onStateChange handlers, which are not shown here.
-
-    // Refresh rooms list every 30 seconds
-    const interval = setInterval(() => {
-      if (client && isConnected) {
-        listRooms(client).then((rooms) => {
-          setRooms(rooms);
-        });
-      }
-    }, 30000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [client, router, isConnected]);
 
   const handleJoinGame = async (
     targetRoomId?: string,
