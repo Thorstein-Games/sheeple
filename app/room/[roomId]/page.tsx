@@ -60,6 +60,8 @@ export default function RoomPage() {
   const [gameEndData, setGameEndData] = useState<GameEndData | null>(null);
   const [readyPlayers, setReadyPlayers] = useState<Set<string>>(new Set());
   const [submittedPlayers, setSubmittedPlayers] = useState<Set<string>>(new Set());
+  const [nextRoundCountdown, setNextRoundCountdown] = useState<number | null>(null);
+  const nextRoundCountdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [hostId, setHostId] = useState<string | undefined>(undefined);
   const [totalRounds, setTotalRounds] = useState(5);
   const [isConnected, setIsConnected] = useState(false);
@@ -94,6 +96,11 @@ export default function RoomPage() {
 
         joinedRoom.onMessage("round_started", (data: any) => {
           console.log("Round started:", data);
+          if (nextRoundCountdownRef.current) {
+            clearInterval(nextRoundCountdownRef.current);
+            nextRoundCountdownRef.current = null;
+          }
+          setNextRoundCountdown(null);
           setCurrentRound({
             roundNumber: data.round,
             prompt: data.prompt,
@@ -108,6 +115,10 @@ export default function RoomPage() {
         joinedRoom.onMessage("answer_submitted", (data: any) => {
           console.log("Answer submitted:", data);
           setHasSubmitted(true);
+        });
+
+        joinedRoom.onMessage("player_submitted", (data: any) => {
+          setSubmittedPlayers((prev) => new Set(prev).add(data.sessionId));
         });
 
         joinedRoom.onMessage("round_ended", (data: any) => {
@@ -134,6 +145,20 @@ export default function RoomPage() {
                 : p
             )
           );
+
+          if (!data.isGameComplete) {
+            setNextRoundCountdown(8);
+            nextRoundCountdownRef.current = setInterval(() => {
+              setNextRoundCountdown((prev) => {
+                if (prev === null || prev <= 1) {
+                  clearInterval(nextRoundCountdownRef.current!);
+                  nextRoundCountdownRef.current = null;
+                  return null;
+                }
+                return prev - 1;
+              });
+            }, 1000);
+          }
         });
 
         joinedRoom.onMessage("game_ended", (data: any) => {
@@ -351,10 +376,6 @@ export default function RoomPage() {
     }
   };
 
-  const handleNextRound = () => {
-    if (!room) return;
-    room.send("next_round", {});
-  };
 
   if (!playerName) {
     return (
@@ -553,21 +574,13 @@ export default function RoomPage() {
                   </div>
                 </div>
 
-                {currentRound && currentRound.roundNumber < totalRounds &&
-                  (currentSessionId === hostId ? (
-                    <button
-                      onClick={handleNextRound}
-                      className="w-full mt-6 bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-500 transition-colors"
-                    >
-                      Next Round →
-                    </button>
-                  ) : (
-                    <div className="w-full mt-6 bg-gray-100 border-2 border-gray-300 rounded-lg p-4 text-center">
-                      <p className="text-gray-600 font-semibold">
-                        Waiting for host to start next round...
-                      </p>
-                    </div>
-                  ))}
+                {currentRound && currentRound.roundNumber < totalRounds && nextRoundCountdown !== null && (
+                  <div className="w-full mt-6 bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center">
+                    <p className="text-blue-700 font-semibold">
+                      Next round starts in {nextRoundCountdown}...
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

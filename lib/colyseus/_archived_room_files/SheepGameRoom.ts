@@ -1,7 +1,16 @@
 import { Client } from "colyseus";
 import { BaseGameRoom } from "./BaseGameRoom";
 import { SheepGameState } from "../schema/SheepGameState";
-import { PromptQueue } from "../../game/prompts";
+
+class PromptQueue {
+  private prompts: string[] = [];
+  private index = 0;
+
+  getNext(): string {
+    if (this.prompts.length === 0) return "";
+    return this.prompts[this.index++ % this.prompts.length];
+  }
+}
 
 /**
  * Normalizes an answer for comparison by:
@@ -206,6 +215,7 @@ export class SheepGameRoom extends BaseGameRoom {
     this.state.submittedPlayers.set(client.sessionId, true);
 
     client.send("answer_submitted", { answer: trimmed });
+    this.broadcast("player_submitted", { sessionId: client.sessionId });
 
     // Check if all players submitted
     const connectedPlayers = Array.from(this.state.players.values()).filter(
@@ -339,6 +349,12 @@ export class SheepGameRoom extends BaseGameRoom {
         this.clock.setTimeout(() => {
           this.endGame();
         }, 3000);
+      } else {
+        this.clock.setTimeout(() => {
+          if (this.state.waitingForNextRound) {
+            this.startRound();
+          }
+        }, 8000);
       }
     }, 2000);
   }
