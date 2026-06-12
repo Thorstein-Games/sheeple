@@ -44,10 +44,11 @@ interface GameEndData {
 export default function RoomPage() {
   const params = useParams();
   const router = useRouter();
-  const { playerName, client, sessionId: colyseusSessionId } = useColyseus();
+  const { playerName, client } = useColyseus();
   const roomId = params.roomId as string;
 
   const [room, setRoom] = useState<Room | null>(null);
+  const [currentSessionId, setCurrentSessionId] = useState<string | undefined>(undefined);
   const [players, setPlayers] = useState<Player[]>([]);
   const [isReady, setIsReady] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
@@ -113,16 +114,26 @@ export default function RoomPage() {
           console.log("Round ended:", data);
           setRevealedAnswers({
             answers: data.results.map((r: any) => ({
-              sessionId: "", // Not needed for display
+              sessionId: r.sessionId,
               playerName: r.playerName,
               answer: r.answer,
               points: r.points,
-              count: 1, // TODO: Get actual count from server
+              count: 1,
             })),
           });
-          
-          // Update player scores
-          updatePlayersList(joinedRoom);
+
+          // Update scores directly from message data so they reflect the
+          // newly added points regardless of when the schema patch arrives.
+          const scoreMap = new Map<string, number>(
+            data.results.map((r: any) => [r.sessionId, r.totalScore])
+          );
+          setPlayers((prev) =>
+            prev.map((p) =>
+              scoreMap.has(p.sessionId)
+                ? { ...p, score: scoreMap.get(p.sessionId)! }
+                : p
+            )
+          );
         });
 
         joinedRoom.onMessage("game_ended", (data: any) => {
@@ -196,6 +207,7 @@ export default function RoomPage() {
         joinedRoom.send("client_ready", {});
 
         setRoom(joinedRoom);
+        setCurrentSessionId(joinedRoom.sessionId);
         setIsConnected(true);
         console.log(`Joined Colyseus room: ${roomId}`);
 
@@ -361,7 +373,7 @@ export default function RoomPage() {
         {gameEnded && gameEndData ? (
           <GameEndScreen
             gameEndData={gameEndData}
-            currentPlayerId={colyseusSessionId || undefined}
+            currentPlayerId={currentSessionId || undefined}
             hostId={hostId}
             room={room}
             onPlayAgain={handlePlayAgain}
@@ -378,7 +390,7 @@ export default function RoomPage() {
             isReady={isReady}
             readyPlayers={readyPlayers}
             previousWinners={new Set()}
-            currentPlayerId={colyseusSessionId || undefined}
+            currentPlayerId={currentSessionId || undefined}
             hostId={hostId}
             room={room}
             onPlayerReady={handlePlayerReady}
@@ -471,7 +483,7 @@ export default function RoomPage() {
                           </span>
                           <span className="text-sm truncate">
                             {player.playerName}
-                            {player.sessionId === colyseusSessionId && " (You)"}
+                            {player.sessionId === currentSessionId && " (You)"}
                           </span>
                         </div>
                       );
@@ -533,7 +545,7 @@ export default function RoomPage() {
                         >
                           <span>
                             {player.playerName}
-                            {player.sessionId === colyseusSessionId && " (You)"}
+                            {player.sessionId === currentSessionId && " (You)"}
                           </span>
                           <span className="font-bold">{player.score} pts</span>
                         </div>
@@ -542,7 +554,7 @@ export default function RoomPage() {
                 </div>
 
                 {currentRound && currentRound.roundNumber < totalRounds &&
-                  (colyseusSessionId === hostId ? (
+                  (currentSessionId === hostId ? (
                     <button
                       onClick={handleNextRound}
                       className="w-full mt-6 bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-500 transition-colors"
