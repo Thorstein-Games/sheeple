@@ -166,6 +166,7 @@ export default function RoomPage() {
           setGameEnded(true);
           setGameEndData(data);
           setGameStarted(false);
+          setIsReady(false);
         });
 
         joinedRoom.onMessage("player_ready", (data: any) => {
@@ -372,7 +373,7 @@ export default function RoomPage() {
     setIsReady(true);
     
     if (room) {
-      room.send("player_ready", {});
+      room.send("ready", {});
     }
   };
 
