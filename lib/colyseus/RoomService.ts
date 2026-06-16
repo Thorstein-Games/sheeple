@@ -39,5 +39,8 @@ export async function joinOrCreateGameRoom(
     playerId,
     tabId,
   };
-  return await client.joinOrCreate<SheepleState>(joinRoomId || "sheeple_game", joinOptions);
+  if (joinRoomId) {
+    return await client.joinById<SheepleState>(joinRoomId, joinOptions);
+  }
+  return await client.joinOrCreate<SheepleState>("sheeple_game", joinOptions);
 }
