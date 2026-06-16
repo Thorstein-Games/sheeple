@@ -25,41 +25,31 @@ export default function CountdownTimer({
     setHasEnded(false);
   }, [timeLimit, currentRound]);
 
-  // Sync with backend via room state if available
-  useEffect(() => {
-    if (!room || hasEnded) return;
-
-    const syncInterval = setInterval(() => {
-      // Read remaining time from room state if available
-      if (room.state && room.state.getRemainingTime) {
-        const remaining = room.state.getRemainingTime();
-        if (remaining >= 0) {
-          setTimeRemaining(remaining);
-        }
-      }
-    }, 5000);
-
-    return () => {
-      clearInterval(syncInterval);
-    };
-  }, [room, hasEnded, currentRound]);
-
   useEffect(() => {
     if (hasEnded) return;
 
     const interval = setInterval(() => {
+      // Prefer the authoritative server end time when available, so the
+      // displayed time can't drift from the backend's actual round timer.
+      const roundEndTime = room?.state?.roundEndTime;
+      const next =
+        roundEndTime != null && roundEndTime > 0
+          ? Math.max(0, roundEndTime - Date.now())
+          : null;
+
       setTimeRemaining((prev) => {
-        if (prev <= 100) {
+        const remaining = next ?? Math.max(0, prev - 100);
+        if (remaining <= 0) {
           setHasEnded(true);
           onTimeUp();
           return 0;
         }
-        return prev - 100;
+        return remaining;
       });
     }, 100);
 
     return () => clearInterval(interval);
-  }, [hasEnded, onTimeUp]);
+  }, [hasEnded, onTimeUp, room]);
 
   const seconds = Math.ceil(timeRemaining / 1000);
   const percentage = (timeRemaining / timeLimit) * 100;

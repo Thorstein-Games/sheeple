@@ -35,10 +35,12 @@ interface RevealAnswersData {
 interface GameEndData {
   results: Array<{
     rank: number;
+    sessionId: string;
     playerName: string;
     score: number;
   }>;
   winner: string | null;
+  winnerIds: string[];
 }
 
 export default function RoomPage() {
@@ -58,6 +60,7 @@ export default function RoomPage() {
   const [revealedAnswers, setRevealedAnswers] = useState<RevealAnswersData | null>(null);
   const [gameEnded, setGameEnded] = useState(false);
   const [gameEndData, setGameEndData] = useState<GameEndData | null>(null);
+  const [previousWinners, setPreviousWinners] = useState<Set<string>>(new Set());
   const [readyPlayers, setReadyPlayers] = useState<Set<string>>(new Set());
   const [submittedPlayers, setSubmittedPlayers] = useState<Set<string>>(new Set());
   const [nextRoundCountdown, setNextRoundCountdown] = useState<number | null>(null);
@@ -65,6 +68,8 @@ export default function RoomPage() {
   const [hostId, setHostId] = useState<string | undefined>(undefined);
   const [totalRounds, setTotalRounds] = useState(5);
   const [isConnected, setIsConnected] = useState(false);
+  const [showHostNotice, setShowHostNotice] = useState(false);
+  const hostNoticeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const joiningRef = useRef(false);
 
   // Join Colyseus room
@@ -165,18 +170,20 @@ export default function RoomPage() {
           console.log("Game ended:", data);
           setGameEnded(true);
           setGameEndData(data);
+          setPreviousWinners(new Set(data.winnerIds || []));
           setGameStarted(false);
           setIsReady(false);
-        });
-
-        joinedRoom.onMessage("player_ready", (data: any) => {
-          console.log("Player ready:", data);
-          setReadyPlayers((prev) => new Set(prev).add(data.sessionId));
         });
 
         joinedRoom.onMessage("host_changed", (data: any) => {
           console.log("Host changed:", data);
           setHostId(data.newHostId);
+
+          if (data.newHostId === joinedRoom.sessionId) {
+            setShowHostNotice(true);
+            if (hostNoticeTimeoutRef.current) clearTimeout(hostNoticeTimeoutRef.current);
+            hostNoticeTimeoutRef.current = setTimeout(() => setShowHostNotice(false), 4000);
+          }
         });
 
         joinedRoom.onMessage("player_joined", (data: any) => {
@@ -303,6 +310,13 @@ export default function RoomPage() {
     };
   }, [room]);
 
+  // Cleanup host notice timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hostNoticeTimeoutRef.current) clearTimeout(hostNoticeTimeoutRef.current);
+    };
+  }, []);
+
   // Helper to update players list from room state
   const updatePlayersList = (currentRoom: Room) => {
     const playerList: Player[] = [];
@@ -392,6 +406,11 @@ export default function RoomPage() {
   return (
     <div className="min-h-screen py-12 px-4">
       <div className="max-w-4xl mx-auto">
+        {showHostNotice && (
+          <div className="mb-4 bg-blue-100 border-2 border-blue-300 text-blue-800 rounded-lg p-3 text-center font-medium">
+            You are now the host
+          </div>
+        )}
         {gameEnded && gameEndData ? (
           <GameEndScreen
             gameEndData={gameEndData}
@@ -411,7 +430,7 @@ export default function RoomPage() {
             isConnected={isConnected}
             isReady={isReady}
             readyPlayers={readyPlayers}
-            previousWinners={new Set()}
+            previousWinners={previousWinners}
             currentPlayerId={currentSessionId || undefined}
             hostId={hostId}
             room={room}
