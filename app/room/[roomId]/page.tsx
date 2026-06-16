@@ -6,6 +6,7 @@ import GameEndScreen from "@/app/components/GameEndScreen";
 import ReadyRoom from "@/app/components/ReadyRoom";
 import RoundPlay from "@/app/components/RoundPlay";
 import RoundResults from "@/app/components/RoundResults";
+import RoundTransition from "@/app/components/RoundTransition";
 import Chat from "@/app/components/Chat";
 import { useGameRoom } from "./useGameRoom";
 
@@ -91,6 +92,8 @@ export default function RoomPage() {
                 nextRoundCountdown={round.nextRoundCountdown}
               />
             )}
+
+            {!round.currentRound && !round.revealedAnswers && <RoundTransition />}
           </div>
         )}
       </div>
