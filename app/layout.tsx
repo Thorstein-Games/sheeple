@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { Toaster } from "sonner";
 import "./globals.css";
 import { ColyseusProvider } from "@/lib/colyseus/ColyseusProvider";
 import { Navbar } from "./components/Navbar";
@@ -150,6 +151,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
         </ColyseusProvider>
+        <Toaster position="top-center" richColors />
       </body>
     </html>
   );

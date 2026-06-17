@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import type { Room } from "colyseus.js";
 import type { ClientWithHTTPAPI } from "@/lib/colyseus/types";
 
@@ -65,8 +66,6 @@ export function useGameRoom(
   const [hostId, setHostId] = useState<string | undefined>(undefined);
   const [totalRounds, setTotalRounds] = useState(5);
   const [isConnected, setIsConnected] = useState(false);
-  const [showHostNotice, setShowHostNotice] = useState(false);
-  const hostNoticeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const joiningRef = useRef(false);
 
   // Helper to update players list from room state
@@ -206,9 +205,7 @@ export function useGameRoom(
           setHostId(data.newHostId);
 
           if (data.newHostId === joinedRoom.sessionId) {
-            setShowHostNotice(true);
-            if (hostNoticeTimeoutRef.current) clearTimeout(hostNoticeTimeoutRef.current);
-            hostNoticeTimeoutRef.current = setTimeout(() => setShowHostNotice(false), 4000);
+            toast.info("You are now the host", { duration: 4000 });
           }
         });
 
@@ -259,7 +256,7 @@ export function useGameRoom(
 
         joinedRoom.onMessage("error", (data: any) => {
           console.error("Room error:", data.message);
-          alert(`Error: ${data.message}`);
+          toast.error(data.message);
         });
 
         // All handlers registered — signal the server it can send welcome + player_list.
@@ -331,13 +328,6 @@ export function useGameRoom(
       }
     };
   }, [room]);
-
-  // Cleanup host notice timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (hostNoticeTimeoutRef.current) clearTimeout(hostNoticeTimeoutRef.current);
-    };
-  }, []);
 
   // Event handlers
   const handlePlayerReady = () => {
@@ -411,9 +401,6 @@ export function useGameRoom(
     },
     gameEnd: {
       gameEndData,
-    },
-    ui: {
-      showHostNotice,
     },
     actions: {
       handlePlayerReady,

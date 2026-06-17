@@ -15,7 +15,7 @@ export default function RoomPage() {
   const { playerName, client } = useColyseus();
   const roomId = params.roomId as string;
 
-  const { gameStarted, gameEnded, connection, players, round, gameEnd, ui, actions } =
+  const { gameStarted, gameEnded, connection, players, round, gameEnd, actions } =
     useGameRoom(roomId, playerName, client);
 
   if (!playerName) {
@@ -32,11 +32,6 @@ export default function RoomPage() {
   return (
     <div className="min-h-screen py-12 px-4">
       <div className="max-w-4xl mx-auto">
-        {ui.showHostNotice && (
-          <div className="mb-4 bg-blue-100 border-2 border-blue-300 text-blue-800 rounded-lg p-3 text-center font-medium">
-            You are now the host
-          </div>
-        )}
         {gameEnded && gameEnd.gameEndData ? (
           <GameEndScreen
             gameEndData={gameEnd.gameEndData}
