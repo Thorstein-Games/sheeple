@@ -84,7 +84,8 @@ export default function RoomPage() {
                 currentSessionId={connection.currentSessionId}
                 currentRound={round.currentRound}
                 totalRounds={round.totalRounds}
-                nextRoundCountdown={round.nextRoundCountdown}
+                isHost={connection.currentSessionId === connection.hostId}
+                onNextRound={actions.handleNextRound}
               />
             )}
 

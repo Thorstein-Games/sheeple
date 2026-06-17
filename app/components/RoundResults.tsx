@@ -29,7 +29,8 @@ interface RoundResultsProps {
   currentSessionId: string | undefined;
   currentRound: RoundData | null;
   totalRounds: number;
-  nextRoundCountdown: number | null;
+  isHost: boolean;
+  onNextRound: () => void;
 }
 
 export default function RoundResults({
@@ -38,7 +39,8 @@ export default function RoundResults({
   currentSessionId,
   currentRound,
   totalRounds,
-  nextRoundCountdown,
+  isHost,
+  onNextRound,
 }: RoundResultsProps) {
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8">
@@ -93,15 +95,22 @@ export default function RoundResults({
         </div>
       </div>
 
-      {currentRound &&
-        currentRound.roundNumber < totalRounds &&
-        nextRoundCountdown !== null && (
-          <div className="w-full mt-6 bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center">
+      {currentRound && currentRound.roundNumber < totalRounds && (
+        <div className="w-full mt-6 bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center">
+          {isHost ? (
+            <button
+              onClick={onNextRound}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+            >
+              Start Next Round
+            </button>
+          ) : (
             <p className="text-blue-700 font-semibold">
-              Next round starts in {nextRoundCountdown}...
+              Waiting for the host to start the next round...
             </p>
-          </div>
-        )}
+          )}
+        </div>
+      )}
     </div>
   );
 }

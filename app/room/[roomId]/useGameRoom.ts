@@ -61,8 +61,6 @@ export function useGameRoom(
   const [previousWinners, setPreviousWinners] = useState<Set<string>>(new Set());
   const [readyPlayers, setReadyPlayers] = useState<Set<string>>(new Set());
   const [submittedPlayers, setSubmittedPlayers] = useState<Set<string>>(new Set());
-  const [nextRoundCountdown, setNextRoundCountdown] = useState<number | null>(null);
-  const nextRoundCountdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [hostId, setHostId] = useState<string | undefined>(undefined);
   const [totalRounds, setTotalRounds] = useState(5);
   const [isConnected, setIsConnected] = useState(false);
@@ -126,11 +124,6 @@ export function useGameRoom(
 
         joinedRoom.onMessage("round_started", (data: any) => {
           console.log("Round started:", data);
-          if (nextRoundCountdownRef.current) {
-            clearInterval(nextRoundCountdownRef.current);
-            nextRoundCountdownRef.current = null;
-          }
-          setNextRoundCountdown(null);
           setCurrentRound({
             roundNumber: data.round,
             prompt: data.prompt,
@@ -175,20 +168,6 @@ export function useGameRoom(
                 : p
             )
           );
-
-          if (!data.isGameComplete) {
-            setNextRoundCountdown(8);
-            nextRoundCountdownRef.current = setInterval(() => {
-              setNextRoundCountdown((prev) => {
-                if (prev === null || prev <= 1) {
-                  clearInterval(nextRoundCountdownRef.current!);
-                  nextRoundCountdownRef.current = null;
-                  return null;
-                }
-                return prev - 1;
-              });
-            }, 1000);
-          }
         });
 
         joinedRoom.onMessage("game_ended", (data: any) => {
@@ -359,6 +338,11 @@ export function useGameRoom(
     }
   };
 
+  const handleNextRound = () => {
+    if (!room) return;
+    room.send("next_round", {});
+  };
+
   const handlePlayAgain = () => {
     setGameEnded(false);
     setGameEndData(null);
@@ -397,7 +381,6 @@ export function useGameRoom(
       setPlayerAnswer,
       hasSubmitted,
       revealedAnswers,
-      nextRoundCountdown,
     },
     gameEnd: {
       gameEndData,
@@ -408,6 +391,7 @@ export function useGameRoom(
       handleUpdatePlayerName,
       handleSubmitAnswer,
       handleTimeUp,
+      handleNextRound,
       handlePlayAgain,
     },
   };
