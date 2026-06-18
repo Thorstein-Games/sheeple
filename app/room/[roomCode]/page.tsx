@@ -13,10 +13,10 @@ import { useGameRoom } from "./useGameRoom";
 export default function RoomPage() {
   const params = useParams();
   const { playerName, client } = useColyseus();
-  const roomId = params.roomId as string;
+  const roomCode = params.roomCode as string;
 
   const { gameStarted, gameEnded, connection, players, round, gameEnd, actions } =
-    useGameRoom(roomId, playerName, client);
+    useGameRoom(roomCode, playerName, client);
 
   if (!playerName) {
     return (
@@ -47,7 +47,7 @@ export default function RoomPage() {
               playerName: p.playerName,
               isReady: p.isReady,
             }))}
-            roomId={roomId}
+            roomCode={roomCode}
             isConnected={connection.isConnected}
             isReady={players.isReady}
             readyPlayers={players.readyPlayers}
@@ -95,7 +95,7 @@ export default function RoomPage() {
       </div>
 
       {/* Chat Component */}
-      <Chat roomId={roomId} />
+      <Chat roomId={roomCode} />
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useColyseus } from "@/lib/colyseus/ColyseusProvider";
-import { joinOrCreateGameRoom } from "@/lib/colyseus/RoomService";
+import { joinOrCreateGameRoom, getRoomCode } from "@/lib/colyseus/RoomService";
 import styles from "./page.module.css";
 
 export default function Home() {
@@ -103,14 +103,14 @@ export default function Home() {
                     setPlayerName(name);
                     try {
                       const room = await joinOrCreateGameRoom(client, name);
-                      const targetRoomId = room.roomId;
+                      const targetRoomCode = await getRoomCode(room);
                       for (let i = 0; i < 5; i++) {
                         room.send("add_fake_player", {});
                       }
                       // Brief pause so the server processes bot messages before we disconnect
                       await new Promise((r) => setTimeout(r, 200));
                       await room.leave();
-                      router.push(`/room/${targetRoomId}`);
+                      router.push(`/room/${targetRoomCode}`);
                     } catch (err: any) {
                       alert(`Error creating dev room: ${err.message}`);
                     }

@@ -23,9 +23,9 @@ export function Navbar() {
   };
 
   const handleCopyRoomCode = async () => {
-    if (!params.roomId) return;
+    if (!params.roomCode) return;
 
-    const roomUrl = `${window.location.origin}/room/${params.roomId}`;
+    const roomUrl = `${window.location.origin}/room/${params.roomCode}`;
     try {
       await navigator.clipboard.writeText(roomUrl);
       setRoomCopied(true);
@@ -81,7 +81,7 @@ export function Navbar() {
                 >
                   <span>Room:</span>
                   <span className="font-mono bg-gray-100 px-2 py-1 rounded text-base">
-                    {params.roomId}
+                    {params.roomCode}
                   </span>
                 </div>
                 {showRoomPopover && (

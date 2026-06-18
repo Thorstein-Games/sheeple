@@ -12,7 +12,7 @@ interface Player {
 
 interface ReadyRoomProps {
   players: Player[];
-  roomId: string;
+  roomCode: string;
   isConnected: boolean;
   isReady: boolean;
   readyPlayers: Set<string>;
@@ -27,7 +27,7 @@ interface ReadyRoomProps {
 
 export default function ReadyRoom({
   players,
-  roomId,
+  roomCode,
   isConnected,
   isReady,
   readyPlayers,
@@ -58,7 +58,7 @@ export default function ReadyRoom({
   };
 
   const handleCopyRoomUrl = async () => {
-    const roomUrl = `${window.location.origin}/room/${roomId}`;
+    const roomUrl = `${window.location.origin}/room/${roomCode}`;
     try {
       await navigator.clipboard.writeText(roomUrl);
       setCopied(true);
@@ -191,7 +191,7 @@ export default function ReadyRoom({
         <div className="flex gap-4 items-center mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
           <p className="text-sm text-blue-800 flex-1">
             You need at least {MIN_PLAYERS} players to start the game. Share the
-            room code <span className="font-mono font-bold">{roomId}</span> with
+            room code <span className="font-mono font-bold">{roomCode}</span> with
             your friends!
           </p>
           <button

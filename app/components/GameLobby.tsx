@@ -6,6 +6,7 @@ import { useColyseus } from "@/lib/colyseus/ColyseusProvider";
 import {
   joinLobby,
   joinOrCreateGameRoom,
+  getRoomCode,
 } from "@/lib/colyseus/RoomService";
 import type { RoomInfo } from "@/shared/schema/RoomMetadata";
 
@@ -16,7 +17,7 @@ interface GameLobbyProps {
 export function GameLobby({ playerName }: GameLobbyProps) {
   const router = useRouter();
   const { client, isConnected, playerId, tabId } = useColyseus();
-  const [roomId, setRoomId] = useState("");
+  const [roomCode, setRoomCode] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
   const [rooms, setRooms] = useState<RoomInfo[]>([]);
   const [hasJoinedLobby, setHasJoinedLobby] = useState(false);
@@ -39,7 +40,7 @@ export function GameLobby({ playerName }: GameLobbyProps) {
       joinedRoom.onMessage('room_list', (data: any) => {
         setRooms((data.rooms || []).map((r: any): RoomInfo => ({
           roomId: r.roomId,
-          roomCode: r.roomId,
+          roomCode: r.roomCode,
           playerCount: r.playerCount,
           maxPlayers: r.maxPlayers,
           gameStarted: r.isStarted,
@@ -60,24 +61,22 @@ export function GameLobby({ playerName }: GameLobbyProps) {
   }, [client, isConnected, playerName, hasJoinedLobby, playerId, tabId]);
 
   const handleJoinGame = async (
-    targetRoomId?: string,
+    targetRoomCode?: string,
     forcePublic?: boolean,
   ) => {
     if (!client) return;
 
     try {
       const room = await joinOrCreateGameRoom(client, playerName, {
-        roomId: targetRoomId || roomId,
+        roomCode: targetRoomCode || roomCode,
         isPrivate,
         playerId,
         tabId,
         forcePublic,
       });
-      const targetId = room.roomId;
+      const targetCode = await getRoomCode(room);
       await room.leave();
-      if (targetId !== "lobby") {
-        router.push(`/room/${targetId}`);
-      }
+      router.push(`/room/${targetCode}`);
     } catch (err: any) {
       alert(`Error: ${err.message}`);
     }
@@ -97,18 +96,19 @@ export function GameLobby({ playerName }: GameLobbyProps) {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">
-                Room ID (optional)
+                Room Code (optional)
               </label>
               <input
                 type="text"
-                value={roomId}
-                onChange={(e) => setRoomId(e.target.value.toUpperCase())}
+                value={roomCode}
+                onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+                maxLength={4}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 placeholder="Leave blank to create new room"
               />
             </div>
 
-            {!roomId && (
+            {!roomCode && (
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -131,8 +131,8 @@ export function GameLobby({ playerName }: GameLobbyProps) {
               disabled={!isConnected}
               className="w-full bg-blue-700 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {roomId
-                ? `Join Room ${roomId}`
+              {roomCode
+                ? `Join Room ${roomCode}`
                 : isPrivate
                   ? "Create Private Room"
                   : "Create Public Room"}
@@ -159,7 +159,7 @@ export function GameLobby({ playerName }: GameLobbyProps) {
                 <div className="flex items-center gap-4">
                   <div>
                     <p className="font-semibold text-lg">
-                      Room {room.roomId}
+                      Room {room.roomCode}
                       {room.isPrivate && (
                         <span className="ml-2 text-xs font-medium text-gray-500 bg-gray-200 px-2 py-1 rounded">
                           🔒 Private
@@ -177,7 +177,7 @@ export function GameLobby({ playerName }: GameLobbyProps) {
                   </div>
                 </div>
                 <button
-                  onClick={() => handleJoinGame(room.roomId)}
+                  onClick={() => handleJoinGame(room.roomCode)}
                   disabled={
                     !isConnected ||
                     room.playerCount >= room.maxPlayers ||

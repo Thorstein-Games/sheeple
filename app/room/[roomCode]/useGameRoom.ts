@@ -41,7 +41,7 @@ export interface GameEndData {
 }
 
 export function useGameRoom(
-  roomId: string,
+  roomCode: string,
   playerName: string | null,
   client: ClientWithHTTPAPI | null
 ) {
@@ -97,14 +97,15 @@ export function useGameRoom(
 
   // Join Colyseus room
   useEffect(() => {
-    if (!client || !playerName || !roomId || room || joiningRef.current) return;
+    if (!client || !playerName || !roomCode || room || joiningRef.current) return;
 
     joiningRef.current = true;
 
     const joinRoom = async () => {
       try {
-        const joinedRoom = await client.joinById(roomId, {
+        const joinedRoom = await client.join("sheeple_game", {
           playerName,
+          roomCode,
         });
 
         // Register ALL message handlers FIRST, synchronously, before any other operations
@@ -244,7 +245,7 @@ export function useGameRoom(
         setRoom(joinedRoom);
         setCurrentSessionId(joinedRoom.sessionId);
         setIsConnected(true);
-        console.log(`Joined Colyseus room: ${roomId}`);
+        console.log(`Joined Colyseus room: ${roomCode}`);
 
         // Set up state listeners (guard against undefined state.players)
         if (joinedRoom.state.players) {
@@ -297,7 +298,7 @@ export function useGameRoom(
     };
 
     joinRoom();
-  }, [client, playerName, roomId]);
+  }, [client, playerName, roomCode]);
 
   // Cleanup room on unmount
   useEffect(() => {
