@@ -93,6 +93,18 @@ export function useGameRoom(
 
     setPlayers(playerList);
     setReadyPlayers(readySet);
+    syncOwnReadyState(readySet, currentRoom.sessionId);
+  };
+
+  // Keep the local "isReady" flag (which drives the Ready button) in sync with
+  // the server's view of this player's ready state. Without this, a page
+  // refresh leaves isReady stuck at false while the server still has the
+  // player marked ready (their session survives reconnection-by-name), so the
+  // Ready button reappears — and since the server's "ready" handler toggles
+  // the flag, clicking it actually un-readies the player instead of confirming.
+  const syncOwnReadyState = (readySet: Set<string>, ownSessionId: string | undefined) => {
+    if (!ownSessionId) return;
+    setIsReady(readySet.has(ownSessionId));
   };
 
   // Join Colyseus room
@@ -113,6 +125,7 @@ export function useGameRoom(
         joinedRoom.onMessage("welcome", (data: any) => {
           console.log("Welcome:", data);
           setHostId(data.isHost ? data.sessionId : undefined);
+          setIsReady(!!data.isReady);
         });
 
         joinedRoom.onMessage("game_started", (data: any) => {
@@ -211,7 +224,9 @@ export function useGameRoom(
               isReady: p.isReady,
               score: p.score || 0,
             })));
-            setReadyPlayers(new Set(data.players.filter((p: any) => p.isReady).map((p: any) => p.sessionId as string)));
+            const readySet = new Set<string>(data.players.filter((p: any) => p.isReady).map((p: any) => p.sessionId as string));
+            setReadyPlayers(readySet);
+            syncOwnReadyState(readySet, joinedRoom.sessionId);
             if (data.hostId) setHostId(data.hostId);
           } else {
             updatePlayersList(joinedRoom);
@@ -227,7 +242,9 @@ export function useGameRoom(
               isReady: p.isReady,
               score: p.score || 0,
             })));
-            setReadyPlayers(new Set(data.players.filter((p: any) => p.isReady).map((p: any) => p.sessionId as string)));
+            const readySet = new Set<string>(data.players.filter((p: any) => p.isReady).map((p: any) => p.sessionId as string));
+            setReadyPlayers(readySet);
+            syncOwnReadyState(readySet, joinedRoom.sessionId);
             if (data.hostId) setHostId(data.hostId);
           } else {
             updatePlayersList(joinedRoom);
