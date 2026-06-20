@@ -23,6 +23,7 @@ interface ReadyRoomProps {
   onPlayerReady: () => void;
   onStartGame: () => void;
   onUpdatePlayerName: (newName: string) => void;
+  onKickPlayer: (sessionId: string) => void;
 }
 
 export default function ReadyRoom({
@@ -38,6 +39,7 @@ export default function ReadyRoom({
   onPlayerReady,
   onStartGame,
   onUpdatePlayerName,
+  onKickPlayer,
 }: ReadyRoomProps) {
   const isHost = currentPlayerId === hostId;
   const allPlayersReady =
@@ -123,7 +125,7 @@ export default function ReadyRoom({
           {players.map((player) => (
             <div
               key={player.playerId}
-              className={`border-2 rounded-lg p-4 flex justify-between items-center ${
+              className={`group border-2 rounded-lg p-4 flex justify-between items-center ${
                 readyPlayers.has(player.playerId)
                   ? "bg-green-50 border-green-400"
                   : "bg-gray-50 border-gray-200"
@@ -180,6 +182,15 @@ export default function ReadyRoom({
                   <span className="text-sm bg-green-600 text-white px-2 py-1 rounded">
                     ✓ Ready
                   </span>
+                )}
+                {isHost && player.playerId !== currentPlayerId && (
+                  <button
+                    onClick={() => onKickPlayer(player.playerId)}
+                    className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-600 transition-all"
+                    title="Kick player"
+                  >
+                    👟
+                  </button>
                 )}
               </div>
             </div>

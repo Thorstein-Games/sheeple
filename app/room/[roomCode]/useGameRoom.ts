@@ -256,6 +256,12 @@ export function useGameRoom(
           toast.error(data.message);
         });
 
+        joinedRoom.onMessage("kicked", (data: any) => {
+          console.log("Kicked from room:", data);
+          toast.error(data.reason || "You were removed from the room", { duration: 4000 });
+          router.push("/lobby");
+        });
+
         // All handlers registered — signal the server it can send welcome + player_list.
         joinedRoom.send("client_ready", {});
 
@@ -343,6 +349,11 @@ export function useGameRoom(
     room.send("update_player_name", { newName });
   };
 
+  const handleKickPlayer = (sessionId: string) => {
+    if (!room) return;
+    room.send("kick_player", { sessionId });
+  };
+
   const handleSubmitAnswer = () => {
     if (!room || !playerAnswer.trim() || hasSubmitted) return;
     room.send("submit_answer", { answer: playerAnswer.trim() });
@@ -407,6 +418,7 @@ export function useGameRoom(
       handlePlayerReady,
       handleStartGame,
       handleUpdatePlayerName,
+      handleKickPlayer,
       handleSubmitAnswer,
       handleTimeUp,
       handleNextRound,

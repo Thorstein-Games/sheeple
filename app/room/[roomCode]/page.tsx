@@ -58,6 +58,7 @@ export default function RoomPage() {
             onPlayerReady={actions.handlePlayerReady}
             onStartGame={actions.handleStartGame}
             onUpdatePlayerName={actions.handleUpdatePlayerName}
+            onKickPlayer={actions.handleKickPlayer}
           />
         ) : (
           <div className="space-y-6">
