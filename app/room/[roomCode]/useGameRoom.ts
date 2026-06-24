@@ -257,7 +257,6 @@ export function useGameRoom(
         });
 
         joinedRoom.onMessage("kicked", (data: any) => {
-          console.log("Kicked from room:", data);
           toast.error(data.reason || "You were removed from the room", { duration: 4000 });
           router.push("/lobby");
         });

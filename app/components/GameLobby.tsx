@@ -6,6 +6,7 @@ import { useColyseus } from "@/lib/colyseus/ColyseusProvider";
 import {
   joinLobby,
   joinOrCreateGameRoom,
+  joinGameRoomAsSpectator,
   getRoomCode,
 } from "@/lib/colyseus/RoomService";
 import type { RoomInfo } from "@/shared/schema/RoomMetadata";
@@ -77,6 +78,18 @@ export function GameLobby({ playerName }: GameLobbyProps) {
       const targetCode = await getRoomCode(room);
       await room.leave();
       router.push(`/room/${targetCode}`);
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    }
+  };
+
+  const handleWatchGame = async (targetRoomCode: string) => {
+    if (!client) return;
+    try {
+      const room = await joinGameRoomAsSpectator(client, targetRoomCode);
+      const targetCode = await getRoomCode(room);
+      await room.leave();
+      router.push(`/room/${targetCode}/spectate`);
     } catch (err: any) {
       alert(`Error: ${err.message}`);
     }
@@ -176,24 +189,33 @@ export function GameLobby({ playerName }: GameLobbyProps) {
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleJoinGame(room.roomCode)}
-                  disabled={
-                    !isConnected ||
-                    room.playerCount >= room.maxPlayers ||
-                    room.gameStarted ||
-                    room.isPrivate
-                  }
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                >
-                  {room.isPrivate
-                    ? "Private"
-                    : room.gameStarted
-                      ? "In Progress"
-                      : room.playerCount >= room.maxPlayers
-                        ? "Full"
-                        : "Join"}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleWatchGame(room.roomCode)}
+                    disabled={!isConnected}
+                    className="px-4 py-2 bg-gray-700 text-white rounded-lg font-semibold hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm"
+                  >
+                    Watch
+                  </button>
+                  <button
+                    onClick={() => handleJoinGame(room.roomCode)}
+                    disabled={
+                      !isConnected ||
+                      room.playerCount >= room.maxPlayers ||
+                      room.gameStarted ||
+                      room.isPrivate
+                    }
+                    className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {room.isPrivate
+                      ? "Private"
+                      : room.gameStarted
+                        ? "In Progress"
+                        : room.playerCount >= room.maxPlayers
+                          ? "Full"
+                          : "Join"}
+                  </button>
+                </div>
               </div>
             ))}
           </div>

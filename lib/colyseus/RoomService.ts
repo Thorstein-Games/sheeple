@@ -33,6 +33,16 @@ export async function joinLobby(
   return room;
 }
 
+export async function joinGameRoomAsSpectator(
+  client: Client,
+  roomCode: string,
+) {
+  return await client.join<SheepleState>("sheeple_game", {
+    roomCode: roomCode.trim().toUpperCase(),
+    spectator: true,
+  });
+}
+
 export async function joinOrCreateGameRoom(
   client: Client,
   playerName: string,
