@@ -228,6 +228,23 @@ export function useGameRoom(
             setReadyPlayers(readySet);
             syncOwnReadyState(readySet, joinedRoom.sessionId);
             if (data.hostId) setHostId(data.hostId);
+
+            // Restore game phase on reconnect — the schema state check may run
+            // before Colyseus applies the initial patch, so this message-based
+            // path is the reliable source of truth.
+            if (data.gamePhase === "playing") {
+              setGameStarted(true);
+              setTotalRounds(joinedRoom.state.totalRounds || 5);
+              if (joinedRoom.state.currentPrompt) {
+                setCurrentRound({
+                  roundNumber: joinedRoom.state.currentRound,
+                  prompt: joinedRoom.state.currentPrompt,
+                  timeLimit: joinedRoom.state.roundDuration,
+                });
+              }
+            } else if (data.gamePhase === "ended") {
+              setGameEnded(true);
+            }
           } else {
             updatePlayersList(joinedRoom);
           }
