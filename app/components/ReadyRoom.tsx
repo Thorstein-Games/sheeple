@@ -132,7 +132,7 @@ export default function ReadyRoom({
               }`}
             >
               <span className="font-medium flex items-center gap-2">
-                {previousWinners.has(player.playerId) && (
+                {previousWinners.has(player.playerName) && (
                   <span className="text-xl" title="Previous Game Winner">
                     🏆
                   </span>

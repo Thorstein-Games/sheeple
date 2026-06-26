@@ -37,7 +37,7 @@ export default function GameEndScreen({
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold mb-4">🎉 Game Over! 🎉</h1>
+        <h1 className="text-4xl font-bold mb-4">🎉 Game Results 🎉</h1>
         <div className="bg-linear-to-r from-yellow-400 to-orange-400 rounded-xl p-6 mb-6">
           <h2 className="text-3xl font-bold text-white mb-2">
             {winnerNames.length > 1 ? "Winners" : "Winner"}:{" "}

@@ -188,7 +188,13 @@ export function useGameRoom(
           console.log("Game ended:", data);
           setGameEnded(true);
           setGameEndData(data);
-          setPreviousWinners(new Set(data.winnerIds || []));
+          // Store winner player names — stable across reconnects unlike session IDs.
+          const winnerNames = new Set<string>(
+            (data.results ?? [])
+              .filter((r: any) => (data.winnerIds ?? []).includes(r.sessionId))
+              .map((r: any) => r.playerName as string)
+          );
+          setPreviousWinners(winnerNames);
           setGameStarted(false);
           setIsReady(false);
         });
@@ -215,6 +221,37 @@ export function useGameRoom(
           console.log("Player disconnected:", data);
         });
 
+        joinedRoom.onMessage("game_state_sync", (data: any) => {
+          console.log("Game state sync:", data);
+          if (data.previousWinnerPlayerNames?.length > 0) {
+            setPreviousWinners(new Set<string>(data.previousWinnerPlayerNames));
+          }
+          if (data.gamePhase === "playing") {
+            setGameStarted(true);
+            setTotalRounds(data.totalRounds || 5);
+            if (data.currentPrompt) {
+              setCurrentRound({
+                roundNumber: data.currentRound,
+                prompt: data.currentPrompt,
+                timeLimit: data.roundDuration,
+              });
+            }
+            if (data.roundResults?.length > 0) {
+              setRevealedAnswers({
+                answers: data.roundResults.map((r: any) => ({
+                  sessionId: r.sessionId,
+                  playerName: r.playerName,
+                  answer: r.answer,
+                  points: r.points,
+                  count: 1,
+                })),
+              });
+            }
+          } else if (data.gamePhase === "ended") {
+            setGameEnded(true);
+          }
+        });
+
         joinedRoom.onMessage("player_list", (data: any) => {
           console.log("Player list:", data);
           if (data?.players) {
@@ -228,23 +265,6 @@ export function useGameRoom(
             setReadyPlayers(readySet);
             syncOwnReadyState(readySet, joinedRoom.sessionId);
             if (data.hostId) setHostId(data.hostId);
-
-            // Restore game phase on reconnect — the schema state check may run
-            // before Colyseus applies the initial patch, so this message-based
-            // path is the reliable source of truth.
-            if (data.gamePhase === "playing") {
-              setGameStarted(true);
-              setTotalRounds(joinedRoom.state.totalRounds || 5);
-              if (joinedRoom.state.currentPrompt) {
-                setCurrentRound({
-                  roundNumber: joinedRoom.state.currentRound,
-                  prompt: joinedRoom.state.currentPrompt,
-                  timeLimit: joinedRoom.state.roundDuration,
-                });
-              }
-            } else if (data.gamePhase === "ended") {
-              setGameEnded(true);
-            }
           } else {
             updatePlayersList(joinedRoom);
           }
