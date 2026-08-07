@@ -9,6 +9,7 @@ import {
   joinGameRoomAsSpectator,
   getRoomCode,
 } from "@/lib/colyseus/RoomService";
+import { setPendingGameRoom } from "@/lib/colyseus/ColyseusProvider";
 import type { RoomInfo } from "@/shared/schema/RoomMetadata";
 
 interface GameLobbyProps {
@@ -76,7 +77,7 @@ export function GameLobby({ playerName }: GameLobbyProps) {
         forcePublic,
       });
       const targetCode = await getRoomCode(room);
-      await room.leave();
+      setPendingGameRoom(room, targetCode); // hand off live connection — room page takes ownership
       router.push(`/room/${targetCode}`);
     } catch (err: any) {
       alert(`Error: ${err.message}`);

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { Room } from "colyseus.js";
 import type { ClientWithHTTPAPI } from "@/lib/colyseus/types";
+import { takePendingGameRoom, getCurrentRoomCode } from "@/lib/colyseus/ColyseusProvider";
 
 export interface Player {
   sessionId: string;
@@ -109,19 +110,9 @@ export function useGameRoom(
 
   // Join Colyseus room
   useEffect(() => {
-    if (!client || !playerName || !roomCode || room || joiningRef.current) return;
+    if (room || joiningRef.current) return;
 
-    joiningRef.current = true;
-
-    const joinRoom = async () => {
-      try {
-        const joinedRoom = await client.join("sheeple_game", {
-          playerName,
-          roomCode,
-        });
-
-        // Register ALL message handlers FIRST, synchronously, before any other operations
-        // This ensures handlers are ready before server messages from onJoin() arrive
+    const setupRoom = (joinedRoom: Room) => {
         joinedRoom.onMessage("welcome", (data: any) => {
           console.log("Welcome:", data);
           setHostId(data.isHost ? data.sessionId : undefined);
@@ -346,17 +337,33 @@ export function useGameRoom(
             });
           }
         }
+    };
 
-      } catch (error: any) {
+    // Use a live room handed off from the lobby (avoids the leave→rejoin cycle
+    // that disposes a freshly-created room when it has no other players yet).
+    const pending = takePendingGameRoom();
+    if (pending) {
+      joiningRef.current = true;
+      setupRoom(pending);
+      return;
+    }
+
+    // Always read the actual room code from the authoritative source — the
+    // roomCode prop may still be "_" (pre-rendered shell param) on first render.
+    const actualRoomCode = getCurrentRoomCode();
+
+    if (!client || !playerName || !actualRoomCode) return;
+    joiningRef.current = true;
+
+    client.join("sheeple_game", { playerName, roomCode: actualRoomCode })
+      .then(setupRoom)
+      .catch((error: any) => {
         console.error("Failed to join Colyseus room:", error);
         joiningRef.current = false;
         if (error.code === 4212) {
           router.push("/lobby");
         }
-      }
-    };
-
-    joinRoom();
+      });
   }, [client, playerName, roomCode]);
 
   // Cleanup room on unmount

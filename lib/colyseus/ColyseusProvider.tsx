@@ -241,6 +241,48 @@ export function useColyseus() {
   return context;
 }
 
+// Module-level handoff: lobby sets these before navigating to the room page so
+// the room page can take ownership of the live connection without leaving and
+// rejoining (which would dispose a freshly-created room).
+//
+// The room code is also written to sessionStorage so it survives a full-page
+// reload (e.g. Ctrl+R), where module-level variables are reset.
+// useParams() / usePathname() are NOT reliable in static export — they return
+// the pre-rendered shell param ("_") rather than the actual URL segment.
+let _pendingGameRoom: Colyseus.Room | null = null;
+let _pendingRoomCode: string | null = null;
+
+export function setPendingGameRoom(room: Colyseus.Room, roomCode: string): void {
+  _pendingGameRoom = room;
+  _pendingRoomCode = roomCode;
+  if (typeof sessionStorage !== "undefined") {
+    sessionStorage.setItem("currentRoomCode", roomCode);
+  }
+}
+
+export function takePendingGameRoom(): Colyseus.Room | null {
+  const r = _pendingGameRoom;
+  _pendingGameRoom = null;
+  _pendingRoomCode = null;
+  return r;
+}
+
+/** Returns the current room code from the most authoritative source available. */
+export function getCurrentRoomCode(): string {
+  // 1. Module var — set explicitly before client-side navigation (most reliable).
+  if (_pendingRoomCode) return _pendingRoomCode;
+  // 2. sessionStorage — survives a full-page reload.
+  if (typeof sessionStorage !== "undefined") {
+    const stored = sessionStorage.getItem("currentRoomCode");
+    if (stored) return stored;
+  }
+  // 3. URL — fallback for direct navigation (shared link, manual address entry).
+  if (typeof window !== "undefined") {
+    return window.location.pathname.split("/")[2]?.toUpperCase() ?? "_";
+  }
+  return "_";
+}
+
 // Helper hook to manage room connection
 export function useRoom() {
   const { client, room, playerName, playerId, tabId } = useColyseus();

@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/room/*/spectate", "destination": "/room/_/spectate.html" },
+    { "source": "/room/*", "destination": "/room/_.html" }
+  ]
+}

@@ -1,15 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, usePathname, useParams } from "next/navigation";
 import Link from "next/link";
-import { useColyseus } from "@/lib/colyseus/ColyseusProvider";
+import { useColyseus, getCurrentRoomCode } from "@/lib/colyseus/ColyseusProvider";
 
 export function Navbar() {
   const { isConnected, playerName, setPlayerName } = useColyseus();
   const router = useRouter();
   const params = useParams();
   const pathname = usePathname();
+  // useParams() returns "_" (pre-rendered shell) in static export. Use
+  // window.location to get the actual room code after hydration.
+  const [navRoomCode, setNavRoomCode] = useState("_");
+  useEffect(() => {
+    setNavRoomCode(getCurrentRoomCode());
+  }, [pathname]);
   const [showRoomPopover, setShowRoomPopover] = useState(false);
   const [roomCopied, setRoomCopied] = useState(false);
 
@@ -23,9 +29,9 @@ export function Navbar() {
   };
 
   const handleCopyRoomCode = async () => {
-    if (!params.roomCode) return;
+    if (!navRoomCode || navRoomCode === "_") return;
 
-    const roomUrl = `${window.location.origin}/room/${params.roomCode}`;
+    const roomUrl = `${window.location.origin}/room/${navRoomCode}`;
     try {
       await navigator.clipboard.writeText(roomUrl);
       setRoomCopied(true);
@@ -81,7 +87,7 @@ export function Navbar() {
                 >
                   <span>Room:</span>
                   <span className="font-mono bg-gray-100 px-2 py-1 rounded text-base">
-                    {params.roomCode}
+                    {navRoomCode}
                   </span>
                 </div>
                 {showRoomPopover && (

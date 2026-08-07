@@ -4,12 +4,10 @@
   "private": true,
   "scripts": {
     "predev": "lsof -ti:3000,3001 2>/dev/null | xargs kill -9 2>/dev/null || true",
-    "dev": "tsx watch server.ts",
-    "dev:basic": "next dev",
+    "dev": "next dev",
     "build": "next build",
     "buildev": "pnpm build && pnpm dev",
-    "start": "NODE_ENV=production node server.js",
-    "start:custom": "NODE_ENV=production tsx server.ts",
+    "preview": "npx serve out",
     "cleanup": "lsof -ti:3000,3001 2>/dev/null | xargs kill -9 2>/dev/null || echo 'No processes to kill'",
     "lint": "eslint",
     "typecheck": "tsc --noEmit"
