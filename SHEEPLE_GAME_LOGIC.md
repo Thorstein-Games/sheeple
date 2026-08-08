@@ -98,7 +98,7 @@ This document describes the Sheeple-specific game logic required for implementin
 
 ## Prompt List Example
 
-- See `GAME_PROMPTS` in the repo for the full list. Example prompts:
+- See the default prompts array in `SheepleRoom.ts` (megingjord server repo) for the full list. Example prompts:
   - Name a fruit
   - Name a pizza topping
   - Name a country
@@ -110,9 +110,8 @@ This document describes the Sheeple-specific game logic required for implementin
 
 ## Implementation References
 
-- See `SheepGameRoom.ts` for round/answer logic and scoring.
-- See `prompts.ts` for prompt queue and shuffle logic.
-- See `PlayerSchema.ts` and `SheepGameState.ts` for state structure.
+- See `SheepleRoom.ts` (megingjord server repo) for round/answer logic, scoring, and prompt cycling.
+- See `SheepleState.ts` (both repos) and `Player.ts` (`shared/schema/`, this repo) for state structure.
 
 ---
 
