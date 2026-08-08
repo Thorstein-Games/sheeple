@@ -297,26 +297,35 @@ export function useGameRoom(
         setIsConnected(true);
         console.log(`Joined Colyseus room: ${roomCode}`);
 
-        // Set up state listeners (guard against undefined state.players)
-        if (joinedRoom.state.players) {
-          joinedRoom.state.players.onAdd((player: any, sessionId: string) => {
-            console.log("Player added:", player.playerName, sessionId);
-            updatePlayersList(joinedRoom);
-          });
+        // Set up state listeners. state.players can be undefined, or truthy
+        // but not yet a real schema collection (missing .onAdd), momentarily
+        // right after a hand-off from the lobby — before the first state
+        // patch applies. Retry via onStateChange once the schema settles
+        // rather than silently giving up, since player_joined has no
+        // fallback player list of its own (unlike player_list/_update).
+        const attachPlayersListeners = () => {
+          if (joinedRoom.state.players && typeof joinedRoom.state.players.onAdd === "function") {
+            joinedRoom.state.players.onAdd((player: any, sessionId: string) => {
+              console.log("Player added:", player.playerName, sessionId);
+              updatePlayersList(joinedRoom);
+            });
 
-          joinedRoom.state.players.onRemove((player: any, sessionId: string) => {
-            console.log("Player removed:", player.playerName, sessionId);
-            updatePlayersList(joinedRoom);
-          });
+            joinedRoom.state.players.onRemove((player: any, sessionId: string) => {
+              console.log("Player removed:", player.playerName, sessionId);
+              updatePlayersList(joinedRoom);
+            });
 
-          joinedRoom.state.players.onChange((player: any, sessionId: string) => {
-            console.log("Player changed:", player.playerName, sessionId);
-            updatePlayersList(joinedRoom);
-          });
-        }
+            joinedRoom.state.players.onChange((player: any, sessionId: string) => {
+              console.log("Player changed:", player.playerName, sessionId);
+              updatePlayersList(joinedRoom);
+            });
 
-        // Initial player list update
-        updatePlayersList(joinedRoom);
+            updatePlayersList(joinedRoom);
+          } else {
+            joinedRoom.onStateChange.once(() => attachPlayersListeners());
+          }
+        };
+        attachPlayersListeners();
 
         // Get host ID from state
         if (joinedRoom.state.hostId) {

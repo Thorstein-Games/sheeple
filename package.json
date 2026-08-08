@@ -10,7 +10,9 @@
     "preview": "npx serve out",
     "cleanup": "lsof -ti:3000,3001 2>/dev/null | xargs kill -9 2>/dev/null || echo 'No processes to kill'",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@colyseus/monitor": "^0.17.7",
@@ -25,6 +27,7 @@
     "sonner": "^2.0.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
