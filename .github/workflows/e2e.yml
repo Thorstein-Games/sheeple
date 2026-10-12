@@ -23,10 +23,25 @@ jobs:
       # directory here too. The default GITHUB_TOKEN can't reach across
       # repos/orgs, so this needs a PAT with read access to that repo stored as
       # the MEGINGJORD_PAT secret on this repo.
+      # Use the megingjord branch with the same name as this PR's branch when
+      # there is one (server + client changes developed together), else main.
+      - name: Pick megingjord ref
+        id: megingjord-ref
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+          TOKEN: ${{ secrets.MEGINGJORD_PAT }}
+        run: |
+          if git ls-remote --exit-code --heads "https://x-access-token:${TOKEN}@github.com/Thorstein-Games/megingjord.git" "$BRANCH" > /dev/null; then
+            echo "ref=$BRANCH" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=main" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout megingjord
         uses: actions/checkout@v4
         with:
           repository: Thorstein-Games/megingjord
+          ref: ${{ steps.megingjord-ref.outputs.ref }}
           token: ${{ secrets.MEGINGJORD_PAT }}
           path: megingjord
 
