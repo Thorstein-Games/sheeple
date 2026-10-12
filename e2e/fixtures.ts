@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 /** Unique-enough player name so parallel workers/tests don't collide on playerId/localStorage. */
 export function uniqueName(prefix: string): string {
@@ -8,7 +8,12 @@ export function uniqueName(prefix: string): string {
 /** Enters a name on the home page and lands on /lobby. */
 export async function enterHerd(page: Page, name: string): Promise<void> {
   await page.goto("/");
-  await page.getByPlaceholder("Your name").fill(name);
+  const nameInput = page.getByPlaceholder("Your name");
+  // Wait for the app to pre-fill its stored/random name: that means React has
+  // hydrated. Typing earlier gets wiped by hydration, and the random name is
+  // what gets submitted (an intermittent "player not found" in later steps).
+  await expect(nameInput).not.toHaveValue("");
+  await nameInput.fill(name);
   await page.getByRole("button", { name: "Join the Herd →" }).click();
   await page.waitForURL("**/lobby");
 }

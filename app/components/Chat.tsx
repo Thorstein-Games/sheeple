@@ -1,25 +1,29 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useColyseus } from "@/lib/colyseus/ColyseusProvider";
 
-interface ChatMessage {
+/** A chat message as megingjord sends it (`chat` / `chat_history`). */
+export interface ChatEntry {
   playerName: string;
-  sessionId: string;
   message: string;
   timestamp: number;
 }
 
 interface ChatProps {
-  roomId: string;
+  /** Messages to show, oldest first. */
+  messages: ChatEntry[];
+  /** This player's name; their own messages are shown on the right. */
+  myName: string | null;
+  /** Send a message; omit to make the chat read-only (e.g. not connected yet). */
+  onSend?: (text: string) => void;
+  title?: string;
 }
 
-export default function Chat({ roomId }: ChatProps) {
-  const { room, sessionId } = useColyseus();
+export default function Chat({ messages, myName, onSend, title = "Room Chat" }: ChatProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
+  // Newest message seen while the chat was last open (or at mount)
+  const [seenUpTo, setSeenUpTo] = useState<ChatEntry | undefined>(messages[messages.length - 1]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -37,42 +41,23 @@ export default function Chat({ roomId }: ChatProps) {
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    if (!room) return;
-
-    const handleNewMessage = (data: ChatMessage) => {
-      setMessages((prev) => [...prev, data]);
-
-      // Show unread indicator if chat is closed
-      if (!isOpen) {
-        setHasUnreadMessages(true);
-      }
-    };
-
-    room.onMessage("chat_message", handleNewMessage);
-
-    return () => {
-      // Colyseus doesn't have an off method, messages are cleaned up on room leave
-    };
-  }, [room, isOpen]);
+  // Unread dot: someone else wrote after the last message seen with the chat open
+  const seenIndex = seenUpTo ? messages.indexOf(seenUpTo) : -1;
+  const hasUnreadMessages =
+    !isOpen && messages.slice(seenIndex + 1).some((m) => m.playerName !== myName);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!room || !message.trim()) return;
+    if (!onSend || !message.trim()) return;
 
-    room.send("chat_message", {
-      message: message.trim(),
-    });
-
+    onSend(message.trim());
     setMessage("");
   };
 
   const handleToggleChat = () => {
     setIsOpen(!isOpen);
-    if (!isOpen) {
-      setHasUnreadMessages(false);
-    }
+    setSeenUpTo(messages[messages.length - 1]);
   };
 
   const formatTime = (timestamp: number) => {
@@ -90,7 +75,7 @@ export default function Chat({ roomId }: ChatProps) {
         >
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-blue-600 text-white rounded-t-lg">
-            <h3 className="font-semibold text-lg">Room Chat</h3>
+            <h3 className="font-semibold text-lg">{title}</h3>
             <button
               onClick={handleToggleChat}
               className="hover:bg-blue-500 rounded p-1 transition-colors"
@@ -124,12 +109,12 @@ export default function Chat({ roomId }: ChatProps) {
                 <div
                   key={index}
                   className={`flex flex-col ${
-                    msg.sessionId === sessionId ? "items-end" : "items-start"
+                    msg.playerName === myName ? "items-end" : "items-start"
                   }`}
                 >
                   <div
                     className={`max-w-[75%] rounded-lg px-3 py-2 ${
-                      msg.sessionId === sessionId
+                      msg.playerName === myName
                         ? "bg-blue-600 text-white"
                         : "bg-gray-200 text-gray-900"
                     }`}
@@ -165,7 +150,7 @@ export default function Chat({ roomId }: ChatProps) {
               />
               <button
                 type="submit"
-                disabled={!message.trim()}
+                disabled={!onSend || !message.trim()}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
                 Send
@@ -182,7 +167,7 @@ export default function Chat({ roomId }: ChatProps) {
         aria-label="Toggle chat"
       >
         {/* Unread indicator */}
-        {hasUnreadMessages && !isOpen && (
+        {hasUnreadMessages && (
           <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white animate-pulse" />
         )}
 

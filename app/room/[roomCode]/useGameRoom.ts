@@ -6,6 +6,10 @@ import { toast } from "sonner";
 import type { Room } from "colyseus.js";
 import type { ClientWithHTTPAPI } from "@/lib/colyseus/types";
 import { takePendingGameRoom, getCurrentRoomCode } from "@/lib/colyseus/ColyseusProvider";
+import type { ChatEntry } from "@/app/components/Chat";
+
+/** Same size as megingjord keeps (SheepleRoom chatHistoryLimit). */
+const CHAT_HISTORY_LIMIT = 50;
 
 export interface Player {
   sessionId: string;
@@ -58,6 +62,7 @@ export function useGameRoom(
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [revealedAnswers, setRevealedAnswers] = useState<RevealAnswersData | null>(null);
   const [gameEnded, setGameEnded] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatEntry[]>([]);
   const [gameEndData, setGameEndData] = useState<GameEndData | null>(null);
   const [previousWinners, setPreviousWinners] = useState<Set<string>>(new Set());
   const [readyPlayers, setReadyPlayers] = useState<Set<string>>(new Set());
@@ -289,6 +294,14 @@ export function useGameRoom(
           router.push("/lobby");
         });
 
+        // Room chat: the server replays recent history after client_ready, then sends each new message.
+        joinedRoom.onMessage("chat_history", (data: { messages?: ChatEntry[] }) => {
+          setChatMessages(data.messages ?? []);
+        });
+        joinedRoom.onMessage("chat", (entry: ChatEntry) => {
+          setChatMessages((prev) => [...prev, entry].slice(-CHAT_HISTORY_LIMIT));
+        });
+
         // All handlers registered — signal the server it can send welcome + player_list.
         joinedRoom.send("client_ready", {});
 
@@ -439,9 +452,17 @@ export function useGameRoom(
     }
   };
 
+  const sendChat = (text: string) => {
+    room?.send("chat", { text });
+  };
+
   return {
     gameStarted,
     gameEnded,
+    chat: {
+      messages: chatMessages,
+      send: sendChat,
+    },
     connection: {
       room,
       isConnected,
