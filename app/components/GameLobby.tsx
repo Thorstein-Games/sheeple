@@ -11,6 +11,10 @@ import {
 } from "@/lib/colyseus/RoomService";
 import { setPendingGameRoom } from "@/lib/colyseus/ColyseusProvider";
 import type { RoomInfo } from "@/shared/schema/RoomMetadata";
+import type { Room } from "colyseus.js";
+import Chat, { type ChatEntry } from "./Chat";
+
+const LOBBY_CHAT_LIMIT = 50;
 
 interface GameLobbyProps {
   playerName: string;
@@ -22,22 +26,37 @@ export function GameLobby({ playerName }: GameLobbyProps) {
   const [roomCode, setRoomCode] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
   const [rooms, setRooms] = useState<RoomInfo[]>([]);
-  const [hasJoinedLobby, setHasJoinedLobby] = useState(false);
+  const [lobbyRoom, setLobbyRoom] = useState<Room | null>(null);
+  const [lobbyChat, setLobbyChat] = useState<ChatEntry[]>([]);
 
-  // Join the lobby room and use WebSocket messages for room listing
+  // Join the lobby room once per mount and use WebSocket messages for room listing.
+  // (This used to also depend on a "has joined" flag it set itself, so joining
+  // re-ran the effect and its cleanup left the lobby it had just joined.)
   useEffect(() => {
-    if (!client || !isConnected || !playerName || hasJoinedLobby) return;
+    if (!client || !isConnected || !playerName) return;
 
-    let room: any = null;
-    let refreshInterval: ReturnType<typeof setInterval>;
+    let cancelled = false;
+    let room: Room | null = null;
+    let refreshInterval: ReturnType<typeof setInterval> | undefined;
 
     joinLobby(client, playerName, playerId, tabId).then((joinedRoom) => {
-      setHasJoinedLobby(true);
+      if (cancelled) {
+        joinedRoom.leave();
+        return;
+      }
       room = joinedRoom;
 
       joinedRoom.onMessage('lobby_joined', (data: any) => {
         console.log('Lobby joined:', data);
       });
+
+      // megingjord's shared lobby chat: { sender, text, timestamp } (no history).
+      joinedRoom.onMessage('chat', (data: { sender: string; text: string; timestamp: number }) => {
+        setLobbyChat((prev) =>
+          [...prev, { playerName: data.sender, message: data.text, timestamp: data.timestamp }].slice(-LOBBY_CHAT_LIMIT),
+        );
+      });
+      setLobbyRoom(joinedRoom);
 
       joinedRoom.onMessage('room_list', (data: any) => {
         setRooms((data.rooms || []).map((r: any): RoomInfo => ({
@@ -57,10 +76,12 @@ export function GameLobby({ playerName }: GameLobbyProps) {
     });
 
     return () => {
+      cancelled = true;
       clearInterval(refreshInterval);
-      if (room) room.leave();
+      setLobbyRoom(null);
+      room?.leave();
     };
-  }, [client, isConnected, playerName, hasJoinedLobby, playerId, tabId]);
+  }, [client, isConnected, playerName, playerId, tabId]);
 
   const handleJoinGame = async (
     targetRoomCode?: string,
@@ -222,6 +243,13 @@ export function GameLobby({ playerName }: GameLobbyProps) {
           </div>
         )}
       </div>
+
+      <Chat
+        title="Lobby Chat"
+        messages={lobbyChat}
+        myName={playerName}
+        onSend={lobbyRoom ? (text) => lobbyRoom.send('chat', { sender: playerName, text }) : undefined}
+      />
     </div>
   );
 }

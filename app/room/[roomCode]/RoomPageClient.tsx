@@ -19,7 +19,7 @@ export default function RoomPageClient() {
     setRoomCode(getCurrentRoomCode());
   }, []);
 
-  const { gameStarted, gameEnded, connection, players, round, gameEnd, actions } =
+  const { gameStarted, gameEnded, connection, players, round, gameEnd, actions, chat } =
     useGameRoom(roomCode, playerName, client);
 
   if (!playerName) {
@@ -100,7 +100,11 @@ export default function RoomPageClient() {
       </div>
 
       {/* Chat Component */}
-      <Chat roomId={roomCode} />
+      <Chat
+        messages={chat.messages}
+        myName={playerName}
+        onSend={connection.isConnected ? chat.send : undefined}
+      />
     </div>
   );
 }
