@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // "" on sheeple-game.com; "/sheeple" for the copy served at
-  // thorsteingames.com/sheeple (see lib/basePath.ts).
+  // "/sheeple" in the deployed build (thorsteingames.com/sheeple), "" in dev
+  // and e2e (see lib/basePath.ts).
   basePath: process.env.NEXT_PUBLIC_BASE_PATH || undefined,
   // Static export is for the Netlify build (which rewrites /room/* to the
   // generateStaticParams "_" shell). `next dev` enforces the export

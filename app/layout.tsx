@@ -6,9 +6,10 @@ import { ColyseusProvider } from "@/lib/colyseus/ColyseusProvider";
 import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
 import { asset } from "@/lib/basePath";
+import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://sheeple-game.com"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Sheeple - Online Party Game | Play Herd Mentality Online",
     template: "%s | Sheeple Game",
@@ -44,16 +45,17 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://sheeple-game.com",
+    url: SITE_URL,
     siteName: "Sheeple Game",
     title: "Sheeple - Think Like the Herd | Free Online Party Game",
     description:
       "Play Sheeple online free! A group thinking party game where matching with the herd wins. 3-12 players, instant play, no downloads!",
     images: [
       {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
+        // og-image.png never existed; the full logo is the closest fit.
+        url: `${SITE_URL}/full_logo.png`,
+        width: 1348,
+        height: 777,
         alt: "Sheeple - Play Herd Mentality Online",
       },
     ],
@@ -63,11 +65,11 @@ export const metadata: Metadata = {
     title: "Sheeple - Think Like the Herd Online",
     description:
       "Play Sheeple online free! Group thinking party game for 3-12 players.",
-    images: ["/og-image.png"],
+    images: [`${SITE_URL}/full_logo.png`],
     creator: "@sheeplegame",
   },
   alternates: {
-    canonical: "https://sheeple-game.com",
+    canonical: SITE_URL,
   },
   other: {
     "google-adsense-account": "ca-pub-9555350395401499",
@@ -112,7 +114,7 @@ export default function RootLayout({
               name: "Sheeple - Group Thinking Party Game",
               description:
                 "Play Sheeple online free! A multiplayer party game where you think like the herd to win. Answer questions and match with the group.",
-              url: "https://sheeple-game.com",
+              url: SITE_URL,
               applicationCategory: "Game",
               operatingSystem: "Web Browser",
               offers: {
