@@ -9,6 +9,7 @@ import { getGameServerUrl } from "@/lib/config/gameConfig";
 // Import schema classes so they're available for Colyseus state deserialization
 import { BaseGameState, Player as PlayerSchema } from "@/lib/colyseus/schema/BaseGameState";
 import { SheepleState } from "@/lib/colyseus/schema/SheepleState";
+import { appPathname } from "@/lib/basePath";
 
 // Register schemas (this ensures they're loaded)
 // Just importing them is enough, but we can reference them to prevent tree-shaking
@@ -238,7 +239,7 @@ export function getCurrentRoomCode(): string {
   }
   // 3. URL — fallback for direct navigation (shared link, manual address entry).
   if (typeof window !== "undefined") {
-    return window.location.pathname.split("/")[2]?.toUpperCase() ?? "_";
+    return appPathname().split("/")[2]?.toUpperCase() ?? "_";
   }
   return "_";
 }

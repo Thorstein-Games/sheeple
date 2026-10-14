@@ -1,0 +1,5 @@
+# Two static exports: the site for sheeple-game.com at the root, and a copy
+# built for the /sheeple base path (served at thorsteingames.com/sheeple).
+[build]
+  command = "pnpm build:netlify"
+  publish = "out"

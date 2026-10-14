@@ -5,6 +5,7 @@ import "./globals.css";
 import { ColyseusProvider } from "@/lib/colyseus/ColyseusProvider";
 import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
+import { asset } from "@/lib/basePath";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://sheeple-game.com"),
@@ -92,7 +93,15 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="flex flex-col min-h-screen">
+      <body
+        className="flex flex-col min-h-screen"
+        style={
+          {
+            "--bg-image": `url("${asset("/bg.png")}")`,
+            "--sheep-image": `url("${asset("/sheep.png")}")`,
+          } as React.CSSProperties
+        }
+      >
         <Script
           id="schema-org"
           type="application/ld+json"
