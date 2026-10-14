@@ -1,4 +1,12 @@
+# Netlify rules for the build in scripts/build-netlify.mjs (everything lives
+# under /sheeple). Moved to the publish root at build time.
+
+# sheeple-game.com has moved to thorsteingames.com/sheeple (room links too).
+https://sheeple-game.com/*      https://thorsteingames.com/sheeple/:splat  301!
+https://www.sheeple-game.com/*  https://thorsteingames.com/sheeple/:splat  301!
+
+# Room pages are one static shell that reads the code from the URL.
 /sheeple/room/*/spectate  /sheeple/room/_/spectate.html  200
 /sheeple/room/*           /sheeple/room/_.html           200
-/room/*/spectate  /room/_/spectate.html  200
-/room/*           /room/_.html           200
+
+/  /sheeple  301

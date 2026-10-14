@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "How to Play Sheeple - Online Party Game Rules & Instructions",
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
     type: "article",
   },
   alternates: {
-    canonical: "https://sheeple-game.com/how-to-play",
+    canonical: `${SITE_URL}/how-to-play`,
   },
 };
 
