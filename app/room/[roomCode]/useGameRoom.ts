@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import type { Room } from "colyseus.js";
+import type { Room } from "@colyseus/sdk";
 import type { ClientWithHTTPAPI } from "@/lib/colyseus/types";
 import { takePendingGameRoom, getCurrentRoomCode } from "@/lib/colyseus/ColyseusProvider";
 import type { ChatEntry } from "@/app/components/Chat";
@@ -206,7 +206,6 @@ export function useGameRoom(
 
         joinedRoom.onMessage("player_joined", (data: any) => {
           console.log("Player joined:", data);
-          updatePlayersList(joinedRoom);
         });
 
         joinedRoom.onMessage("player_reconnected", (data: any) => {
@@ -302,6 +301,13 @@ export function useGameRoom(
           setChatMessages((prev) => [...prev, entry].slice(-CHAT_HISTORY_LIMIT));
         });
 
+        joinedRoom.onMessage("player_removed", () => {});
+        joinedRoom.onMessage("spectator_joined", () => {});
+        joinedRoom.onMessage("spectator_left", () => {});
+
+        // The server can't resume a dropped connection by token; rejoining by name does that.
+        joinedRoom.reconnection.enabled = false;
+
         // All handlers registered — signal the server it can send welcome + player_list.
         joinedRoom.send("client_ready", {});
 
@@ -310,35 +316,15 @@ export function useGameRoom(
         setIsConnected(true);
         console.log(`Joined Colyseus room: ${roomCode}`);
 
-        // Set up state listeners. state.players can be undefined, or truthy
-        // but not yet a real schema collection (missing .onAdd), momentarily
-        // right after a hand-off from the lobby — before the first state
-        // patch applies. Retry via onStateChange once the schema settles
-        // rather than silently giving up, since player_joined has no
-        // fallback player list of its own (unlike player_list/_update).
-        const attachPlayersListeners = () => {
-          if (joinedRoom.state.players && typeof joinedRoom.state.players.onAdd === "function") {
-            joinedRoom.state.players.onAdd((player: any, sessionId: string) => {
-              console.log("Player added:", player.playerName, sessionId);
-              updatePlayersList(joinedRoom);
-            });
-
-            joinedRoom.state.players.onRemove((player: any, sessionId: string) => {
-              console.log("Player removed:", player.playerName, sessionId);
-              updatePlayersList(joinedRoom);
-            });
-
-            joinedRoom.state.players.onChange((player: any, sessionId: string) => {
-              console.log("Player changed:", player.playerName, sessionId);
-              updatePlayersList(joinedRoom);
-            });
-
-            updatePlayersList(joinedRoom);
-          } else {
-            joinedRoom.onStateChange.once(() => attachPlayersListeners());
-          }
+        // Players, ready flags, scores and the host come from synced state:
+        // re-read them after every patch, so everyone sees each other's
+        // joins, leaves and changes live.
+        const syncFromState = () => {
+          updatePlayersList(joinedRoom);
+          if (joinedRoom.state.hostId) setHostId(joinedRoom.state.hostId);
         };
-        attachPlayersListeners();
+        joinedRoom.onStateChange(syncFromState);
+        syncFromState();
 
         // Get host ID from state
         if (joinedRoom.state.hostId) {

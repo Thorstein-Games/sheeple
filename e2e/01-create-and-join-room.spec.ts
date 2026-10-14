@@ -4,7 +4,6 @@ import {
   createPublicRoom,
   joinRoomByCode,
   leaveRoom,
-  refreshRoomState,
   uniqueName,
 } from "./fixtures";
 
@@ -31,9 +30,9 @@ test("host creates a public room and a guest joins it by code", async ({ browser
     await expect(guestPage.getByText(hostName).first()).toBeVisible();
     await expect(guestPage.getByText(guestName).first()).toBeVisible();
 
-    // The host's page needs a refresh to see the guest — see refreshRoomState().
-    await refreshRoomState(hostPage);
+    // The host sees the guest arrive live, without a reload.
     await expect(hostPage.getByText(guestName).first()).toBeVisible();
+    await expect(hostPage.getByText("Players in Room (2/")).toBeVisible();
   } finally {
     // Always leave cleanly (even on assertion failure) so the room is empty
     // for the next test's quickplay match — see leaveRoom() in fixtures.ts.

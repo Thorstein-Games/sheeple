@@ -4,7 +4,7 @@ import {
   createPublicRoom,
   joinRoomByCode,
   leaveRoom,
-  refreshRoomState,
+  reloadRoom,
   uniqueName,
 } from "./fixtures";
 
@@ -28,8 +28,8 @@ test("reloading keeps your seat, without a duplicate player", async ({ browser }
     await joinRoomByCode(guestPage, roomCode);
 
     // Both reload; each comes back to the same room as the same player.
-    await refreshRoomState(guestPage);
-    await refreshRoomState(hostPage);
+    await reloadRoom(guestPage);
+    await reloadRoom(hostPage);
     expect(hostPage.url()).toContain(`/room/${roomCode}`);
     await expect(hostPage.getByText("Players in Room (2/")).toBeVisible();
     await expect(hostPage.getByText(guestName)).toHaveCount(1);
@@ -63,7 +63,7 @@ test("when the host leaves, another player becomes host", async ({ browser }) =>
 
     await leaveRoom(hostPage);
 
-    await refreshRoomState(aPage);
+    // Everyone left sees it live: the host is gone and someone else is crowned.
     await expect(aPage.getByText("Players in Room (2/")).toBeVisible();
     await expect(aPage.getByText(hostName)).toHaveCount(0);
     const crowned = aPage.getByTitle("Room Host");
@@ -72,7 +72,6 @@ test("when the host leaves, another player becomes host", async ({ browser }) =>
     const other = newHost === aPage ? bName : aName;
 
     // Only the new host gets host controls.
-    await refreshRoomState(newHost);
     await expect(newHost.locator(".group", { hasText: other }).getByTitle("Kick player")).toBeVisible();
   } finally {
     await leaveRoom(aPage).catch(() => {});

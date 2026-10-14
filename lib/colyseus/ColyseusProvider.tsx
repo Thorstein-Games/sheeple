@@ -1,20 +1,10 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useRef } from "react";
-import * as Colyseus from "colyseus.js";
-import type { SeatReservation, Room, RoomAvailable } from "colyseus.js";
+import * as Colyseus from "@colyseus/sdk";
 import type { ClientWithHTTPAPI } from "@/lib/colyseus/types";
 import { generateRandomPlayerName } from "@/lib/utils";
 import { getGameServerUrl } from "@/lib/config/gameConfig";
-
-// @colyseus/core@0.17 returns a flat seat reservation; colyseus.js@0.16 expects the nested format.
-// SeatReservation.room is typed as RoomAvailable, but buildEndpoint also reads processId/publicAddress.
-type FlatSeatReservation = {
-  name: string; sessionId: string; roomId: string;
-  processId?: string; publicAddress?: string;
-  reconnectionToken?: string; devMode?: boolean; protocol?: string;
-};
-type RoomWithEndpointFields = RoomAvailable & { processId?: string; publicAddress?: string };
 
 // Import schema classes so they're available for Colyseus state deserialization
 import { BaseGameState, Player as PlayerSchema } from "@/lib/colyseus/schema/BaseGameState";
@@ -133,23 +123,6 @@ export function ColyseusProvider({ children }: { children: React.ReactNode }) {
     try {
       const colyseusClient = new Colyseus.Client(gameServerUrl) as ClientWithHTTPAPI;
 
-      // Normalize @colyseus/core@0.17 flat seat reservation to the nested format colyseus.js@0.16 expects.
-      const _origConsume = colyseusClient.consumeSeatReservation.bind(colyseusClient);
-      colyseusClient.consumeSeatReservation = <T = any>(
-        response: SeatReservation,
-        rootSchema?: new (...args: any[]) => T,
-        reuseRoomInstance?: Room,
-      ): Promise<Room<T>> => {
-        const flat = response as unknown as FlatSeatReservation;
-        if (!response.room && flat.name) {
-          (response as SeatReservation & { room: RoomWithEndpointFields }).room = {
-            name: flat.name, roomId: flat.roomId, clients: 0, maxClients: 0,
-            processId: flat.processId, publicAddress: flat.publicAddress,
-          };
-        }
-        return _origConsume(response, rootSchema, reuseRoomInstance);
-      };
-
       setClient(colyseusClient);
       clientRef.current = colyseusClient;
       setIsConnected(true);
@@ -174,7 +147,7 @@ export function ColyseusProvider({ children }: { children: React.ReactNode }) {
 
     const updatePlayers = () => {
       const playerList: Player[] = [];
-      room.state.players.forEach((player: any, sessionId: string) => {
+      room.state.players?.forEach((player: any, sessionId: string) => {
         playerList.push({
           sessionId,
           playerName: player.playerName,
@@ -189,27 +162,14 @@ export function ColyseusProvider({ children }: { children: React.ReactNode }) {
     // Initial sync
     updatePlayers();
 
-    // Listen for player changes
-    room.state.players.onAdd = (player: any, sessionId: string) => {
-      updatePlayers();
-    };
-
-    room.state.players.onRemove = (player: any, sessionId: string) => {
-      updatePlayers();
-    };
-
-    room.state.players.onChange = (player: any, sessionId: string) => {
-      updatePlayers();
-    };
+    // Re-read the players after every state patch.
+    room.onStateChange(updatePlayers);
 
     // Set session ID
     setSessionId(room.sessionId);
 
     return () => {
-      // Cleanup listeners
-      room.state.players.onAdd = undefined;
-      room.state.players.onRemove = undefined;
-      room.state.players.onChange = undefined;
+      room.onStateChange.remove(updatePlayers);
     };
   }, [room]);
 

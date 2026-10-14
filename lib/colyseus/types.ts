@@ -1,7 +1,7 @@
 // types.ts
 // Shared Colyseus-related type extensions
 
-import type { Client } from "colyseus.js";
+import type { Client } from "@colyseus/sdk";
 import type { RoomAvailable } from "@/shared/schema/RoomMetadata";
 
 /**

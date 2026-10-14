@@ -1,7 +1,7 @@
 // RoomService.ts
 // Centralized helper for Colyseus room operations
 
-import type { Client, Room } from "colyseus.js";
+import type { Client, Room } from "@colyseus/sdk";
 import { SheepleState } from "./schema/SheepleState";
 import type { RoomInfo } from "@/shared/schema/RoomMetadata";
 

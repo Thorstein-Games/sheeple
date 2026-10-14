@@ -2,7 +2,7 @@
  * Room metadata types for Colyseus matchmaker API
  * 
  * This file RE-EXPORTS types from their canonical sources and provides helper utilities.
- * It does NOT redefine types - it imports them from colyseus.js and server schemas.
+ * It does NOT redefine types - it imports them from @colyseus/sdk and server schemas.
  * 
  * Used by:
  * - Client: Type checking matchmaker API responses (getAvailableRooms)
@@ -10,7 +10,7 @@
  */
 
 // Import Colyseus's actual RoomAvailable type
-import type { RoomAvailable as ColyseusRoomAvailable } from "colyseus.js";
+import type { RoomAvailable as ColyseusRoomAvailable } from "@colyseus/sdk";
 
 /**
  * Metadata structure that the server sets via room.setMetadata()

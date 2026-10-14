@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Room } from "colyseus.js";
+import type { Room } from "@colyseus/sdk";
 import type { ClientWithHTTPAPI } from "@/lib/colyseus/types";
 import type { Player, RoundData, RevealAnswersData, GameEndData } from "./useGameRoom";
 
@@ -110,10 +110,10 @@ export function useSpectatorRoom(
           }
         });
 
-        joinedRoom.onMessage("player_joined", () => setPlayers(buildPlayerList(joinedRoom.state)));
-        joinedRoom.onMessage("player_reconnected", () => setPlayers(buildPlayerList(joinedRoom.state)));
-        joinedRoom.onMessage("player_disconnected", () => setPlayers(buildPlayerList(joinedRoom.state)));
-        joinedRoom.onMessage("player_removed", () => setPlayers(buildPlayerList(joinedRoom.state)));
+        // Player changes arrive as state patches (see onStateChange below).
+        ["player_joined", "player_reconnected", "player_disconnected", "player_removed", "spectator_joined", "spectator_left"].forEach(
+          (type) => joinedRoom.onMessage(type, () => {}),
+        );
         joinedRoom.onMessage("player_list_update", (data: any) => {
           if (data?.players) {
             setPlayers(data.players.map((p: any) => ({
@@ -178,17 +178,17 @@ export function useSpectatorRoom(
         setRoom(joinedRoom);
         setIsConnected(true);
 
-        // Schema state listeners for ongoing player list changes
-        if (joinedRoom.state?.players) {
-          joinedRoom.state.players.onAdd(() => setPlayers(buildPlayerList(joinedRoom.state)));
-          joinedRoom.state.players.onRemove(() => setPlayers(buildPlayerList(joinedRoom.state)));
-          joinedRoom.state.players.onChange(() => setPlayers(buildPlayerList(joinedRoom.state)));
-        }
-
         // Sync from current state immediately (handles pre-populated state)
         // then again on first patch (handles async state arrival after join).
         syncFromState(joinedRoom.state);
         joinedRoom.onStateChange.once(syncFromState);
+
+        // After that, keep the player list and host live from every patch.
+        joinedRoom.onStateChange((state: any) => {
+          setPlayers(buildPlayerList(state));
+          if (state.hostId) setHostId(state.hostId);
+        });
+        joinedRoom.reconnection.enabled = false;
 
       } catch (error: any) {
         console.error("[Spectator] Failed to join room:", error);

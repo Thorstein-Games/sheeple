@@ -10,16 +10,16 @@ importers:
     dependencies:
       '@colyseus/monitor':
         specifier: ^0.17.7
-        version: 0.17.7(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(zod@4.2.1)
+        version: 0.17.7(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(zod@4.2.1)
       '@colyseus/schema':
         specifier: ^4.0.13
         version: 4.0.19(typescript@5.9.3)
+      '@colyseus/sdk':
+        specifier: 0.17.43
+        version: 0.17.43(@colyseus/core@0.17.36)(typescript@5.9.3)(zod@4.2.1)
       colyseus:
         specifier: ^0.17.8
-        version: 0.17.8(@colyseus/auth@0.17.8(@colyseus/core@0.17.36)(express@5.2.1))(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/core@0.17.36)(@colyseus/redis-driver@0.17.6(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1))(@colyseus/redis-presence@0.17.6(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/uwebsockets-transport@0.17.16(@colyseus/core@0.17.36))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
-      colyseus.js:
-        specifier: ^0.16.22
-        version: 0.16.22
+        version: 0.17.8(@colyseus/auth@0.17.8(@colyseus/core@0.17.36)(express@5.2.1))(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/core@0.17.36)(@colyseus/redis-driver@0.17.6(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1))(@colyseus/redis-presence@0.17.6(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/uwebsockets-transport@0.17.16(@colyseus/core@0.17.36))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
       cors:
         specifier: ^2.8.6
         version: 2.8.6
@@ -187,10 +187,6 @@ packages:
   '@colyseus/greeting-banner@3.0.8':
     resolution: {integrity: sha512-k5UcCfgtxkL0nyIJPZm7CkoiCpY8afUgeYcj7Z2tJFp0Z74m7YHgv3qVhFEQYvp+BvweRiHjhEhaDxYQFTC7hA==}
 
-  '@colyseus/httpie@2.0.1':
-    resolution: {integrity: sha512-JvABMZzPLiyrUsVj3ElXGORRDTu+NKzXHWd1uV1R1SThAKMm06cVW6bOyADARD65bs8JJoHNNbUkW8KoRvRDzA==}
-    engines: {node: '>=10'}
-
   '@colyseus/monitor@0.17.7':
     resolution: {integrity: sha512-57W6QHQK38gqLPyi3cNy1m1n5BTZFfn+oobvc/doA+YJ+exzQH1lHyHPdrt6YaaDs72dysBuSu1Bw3U0l/LjqA==}
 
@@ -211,15 +207,20 @@ packages:
   '@colyseus/redis-presence@0.17.6':
     resolution: {integrity: sha512-gtgDmPHDNVzIFou3bo1Z3togUW/ihMvLCHZZMvMqbnAZGEvlhcriJad5+8z8kv2UIjGMnOGcNlg7IomGEiy6Cg==}
 
-  '@colyseus/schema@3.0.76':
-    resolution: {integrity: sha512-i+ceBZyhB7lTn5+BoG/xxYfzW4dKKyLOywsGKVgXHe9fD905AS/Lk180jd1bICEJhebGeiRXEQ2YUPl/xwFg2g==}
-    hasBin: true
-
   '@colyseus/schema@4.0.19':
     resolution: {integrity: sha512-jU1Jzf5QrA/srjDKcAN/BD1ZkPMuz6LftWGnpyzZE1wjmuOEZTvRfYQJhRd6GLJ+bifnh0DeJnfBRnfR64PyTA==}
     hasBin: true
     peerDependencies:
       typescript: ^5.9.3
+
+  '@colyseus/sdk@0.17.43':
+    resolution: {integrity: sha512-aXefQuh7esEZbtd11TzKMqoLmUjKIfWVDr7ytPR7atV2QgnVyOHof3WIX7B8MDfr9ShyFFVEy2BseCGIfzzvBA==}
+    engines: {node: '>= 12.x'}
+    peerDependencies:
+      '@colyseus/core': 0.17.x
+    peerDependenciesMeta:
+      '@colyseus/core':
+        optional: true
 
   '@colyseus/shared-types@0.17.6':
     resolution: {integrity: sha512-GeBB9uNrjG+BWa4/LAVyAHj65ll0WKLNjWDieKiphhmbfGXgQOcmvWVxKQc8KKu+n7f5Hmrwr6IEk9Dm2Y0Qgw==}
@@ -502,105 +503,89 @@ packages:
     resolution: {integrity: sha512-excjX8DfsIcJ10x1Kzr4RcWe1edC9PquDRRPx3YVCvQv+U5p7Yin2s32ftzikXojb1PIFc/9Mt28/y+iRklkrw==}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-libvips-linux-arm@1.2.4':
     resolution: {integrity: sha512-bFI7xcKFELdiNCVov8e44Ia4u2byA+l3XtsAj+Q8tfCwO6BQ8iDojYdvoPMqsKDkuoOo+X6HZA0s0q11ANMQ8A==}
     cpu: [arm]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-libvips-linux-ppc64@1.2.4':
     resolution: {integrity: sha512-FMuvGijLDYG6lW+b/UvyilUWu5Ayu+3r2d1S8notiGCIyYU/76eig1UfMmkZ7vwgOrzKzlQbFSuQfgm7GYUPpA==}
     cpu: [ppc64]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-libvips-linux-riscv64@1.2.4':
     resolution: {integrity: sha512-oVDbcR4zUC0ce82teubSm+x6ETixtKZBh/qbREIOcI3cULzDyb18Sr/Wcyx7NRQeQzOiHTNbZFF1UwPS2scyGA==}
     cpu: [riscv64]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-libvips-linux-s390x@1.2.4':
     resolution: {integrity: sha512-qmp9VrzgPgMoGZyPvrQHqk02uyjA0/QrTO26Tqk6l4ZV0MPWIW6LTkqOIov+J1yEu7MbFQaDpwdwJKhbJvuRxQ==}
     cpu: [s390x]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-libvips-linux-x64@1.2.4':
     resolution: {integrity: sha512-tJxiiLsmHc9Ax1bz3oaOYBURTXGIRDODBqhveVHonrHJ9/+k89qbLl0bcJns+e4t4rvaNBxaEZsFtSfAdquPrw==}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-libvips-linuxmusl-arm64@1.2.4':
     resolution: {integrity: sha512-FVQHuwx1IIuNow9QAbYUzJ+En8KcVm9Lk5+uGUQJHaZmMECZmOlix9HnH7n1TRkXMS0pGxIJokIVB9SuqZGGXw==}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   '@img/sharp-libvips-linuxmusl-x64@1.2.4':
     resolution: {integrity: sha512-+LpyBk7L44ZIXwz/VYfglaX/okxezESc6UxDSoyo2Ks6Jxc4Y7sGjpgU9s4PMgqgjj1gZCylTieNamqA1MF7Dg==}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   '@img/sharp-linux-arm64@0.34.5':
     resolution: {integrity: sha512-bKQzaJRY/bkPOXyKx5EVup7qkaojECG6NLYswgktOZjaXecSAeCWiZwwiFf3/Y+O1HrauiE3FVsGxFg8c24rZg==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-linux-arm@0.34.5':
     resolution: {integrity: sha512-9dLqsvwtg1uuXBGZKsxem9595+ujv0sJ6Vi8wcTANSFpwV/GONat5eCkzQo/1O6zRIkh0m/8+5BjrRr7jDUSZw==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [arm]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-linux-ppc64@0.34.5':
     resolution: {integrity: sha512-7zznwNaqW6YtsfrGGDA6BRkISKAAE1Jo0QdpNYXNMHu2+0dTrPflTLNkpc8l7MUP5M16ZJcUvysVWWrMefZquA==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [ppc64]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-linux-riscv64@0.34.5':
     resolution: {integrity: sha512-51gJuLPTKa7piYPaVs8GmByo7/U7/7TZOq+cnXJIHZKavIRHAP77e3N2HEl3dgiqdD/w0yUfiJnII77PuDDFdw==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [riscv64]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-linux-s390x@0.34.5':
     resolution: {integrity: sha512-nQtCk0PdKfho3eC5MrbQoigJ2gd1CgddUMkabUj+rBevs8tZ2cULOx46E7oyX+04WGfABgIwmMC0VqieTiR4jg==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [s390x]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-linux-x64@0.34.5':
     resolution: {integrity: sha512-MEzd8HPKxVxVenwAa+JRPwEC7QFjoPWuS5NZnBt6B3pu7EG2Ge0id1oLHZpPJdn3OQK+BQDiw9zStiHBTJQQQQ==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-linuxmusl-arm64@0.34.5':
     resolution: {integrity: sha512-fprJR6GtRsMt6Kyfq44IsChVZeGN97gTD331weR1ex1c1rypDEABN6Tm2xa1wE6lYb5DdEnk03NZPqA7Id21yg==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   '@img/sharp-linuxmusl-x64@0.34.5':
     resolution: {integrity: sha512-Jg8wNT1MUzIvhBFxViqrEhWDGzqymo3sV7z7ZsaWbZNDLXRJZoRGrjulp60YYtV4wfY8VIKcWidjojlLcWrd8Q==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   '@img/sharp-wasm32@0.34.5':
     resolution: {integrity: sha512-OdWTEiVkY2PHwqkbBI8frFxQQFekHaSSkUIJkwzclWZe64O1X4UlUjqqqLaPbUpMOQk6FBu/HtlGXNblIs0huw==}
@@ -700,28 +685,24 @@ packages:
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   '@next/swc-linux-arm64-musl@16.1.1':
     resolution: {integrity: sha512-MFHrgL4TXNQbBPzkKKur4Fb5ICEJa87HM7fczFs2+HWblM7mMLdco3dvyTI+QmLBU9xgns/EeeINSZD6Ar+oLg==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   '@next/swc-linux-x64-gnu@16.1.1':
     resolution: {integrity: sha512-20bYDfgOQAPUkkKBnyP9PTuHiJGM7HzNBbuqmD0jiFVZ0aOldz+VnJhbxzjcSabYsnNjMPsE0cyzEudpYxsrUQ==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@next/swc-linux-x64-musl@16.1.1':
     resolution: {integrity: sha512-9pRbK3M4asAHQRkwaXwu601oPZHghuSC8IXNENgbBSyImHv/zY4K5udBusgdHkvJ/Tcr96jJwQYOll0qU8+fPA==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   '@next/swc-win32-arm64-msvc@16.1.1':
     resolution: {integrity: sha512-bdfQkggaLgnmYrFkSQfsHfOhk/mCYmjnrbRCGgkMcoOBZ4n+TRRSLmT/CU5SATzlBJ9TpioUyBW/vWFXTqQRiA==}
@@ -807,28 +788,24 @@ packages:
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   '@tailwindcss/oxide-linux-arm64-musl@4.1.18':
     resolution: {integrity: sha512-1px92582HkPQlaaCkdRcio71p8bc8i/ap5807tPRDK/uw953cauQBT8c5tVGkOwrHMfc2Yh6UuxaH4vtTjGvHg==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   '@tailwindcss/oxide-linux-x64-gnu@4.1.18':
     resolution: {integrity: sha512-v3gyT0ivkfBLoZGF9LyHmts0Isc8jHZyVcbzio6Wpzifg/+5ZJpDiRiUhDLkcr7f/r38SWNe7ucxmGW3j3Kb/g==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@tailwindcss/oxide-linux-x64-musl@4.1.18':
     resolution: {integrity: sha512-bhJ2y2OQNlcRwwgOAGMY0xTFStt4/wyU6pvI6LSuZpRgKQwxTec0/3Scu91O8ir7qCR3AuepQKLU/kX99FouqQ==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   '@tailwindcss/oxide-wasm32-wasi@4.1.18':
     resolution: {integrity: sha512-LffYTvPjODiP6PT16oNeUQJzNVyJl1cjIebq/rWWBF+3eDst5JGEFSc5cWxyRCJ0Mxl+KyIkqRxk1XPEs9x8TA==}
@@ -1021,49 +998,41 @@ packages:
     resolution: {integrity: sha512-34gw7PjDGB9JgePJEmhEqBhWvCiiWCuXsL9hYphDF7crW7UgI05gyBAi6MF58uGcMOiOqSJ2ybEeCvHcq0BCmQ==}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   '@unrs/resolver-binding-linux-arm64-musl@1.11.1':
     resolution: {integrity: sha512-RyMIx6Uf53hhOtJDIamSbTskA99sPHS96wxVE/bJtePJJtpdKGXO1wY90oRdXuYOGOTuqjT8ACccMc4K6QmT3w==}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   '@unrs/resolver-binding-linux-ppc64-gnu@1.11.1':
     resolution: {integrity: sha512-D8Vae74A4/a+mZH0FbOkFJL9DSK2R6TFPC9M+jCWYia/q2einCubX10pecpDiTmkJVUH+y8K3BZClycD8nCShA==}
     cpu: [ppc64]
     os: [linux]
-    libc: [glibc]
 
   '@unrs/resolver-binding-linux-riscv64-gnu@1.11.1':
     resolution: {integrity: sha512-frxL4OrzOWVVsOc96+V3aqTIQl1O2TjgExV4EKgRY09AJ9leZpEg8Ak9phadbuX0BA4k8U5qtvMSQQGGmaJqcQ==}
     cpu: [riscv64]
     os: [linux]
-    libc: [glibc]
 
   '@unrs/resolver-binding-linux-riscv64-musl@1.11.1':
     resolution: {integrity: sha512-mJ5vuDaIZ+l/acv01sHoXfpnyrNKOk/3aDoEdLO/Xtn9HuZlDD6jKxHlkN8ZhWyLJsRBxfv9GYM2utQ1SChKew==}
     cpu: [riscv64]
     os: [linux]
-    libc: [musl]
 
   '@unrs/resolver-binding-linux-s390x-gnu@1.11.1':
     resolution: {integrity: sha512-kELo8ebBVtb9sA7rMe1Cph4QHreByhaZ2QEADd9NzIQsYNQpt9UkM9iqr2lhGr5afh885d/cB5QeTXSbZHTYPg==}
     cpu: [s390x]
     os: [linux]
-    libc: [glibc]
 
   '@unrs/resolver-binding-linux-x64-gnu@1.11.1':
     resolution: {integrity: sha512-C3ZAHugKgovV5YvAMsxhq0gtXuwESUKc5MhEtjBpLoHPLYM+iuwSj3lflFwK3DPm68660rZ7G8BMcwSro7hD5w==}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@unrs/resolver-binding-linux-x64-musl@1.11.1':
     resolution: {integrity: sha512-rV0YSoyhK2nZ4vEswT/QwqzqQXw5I6CjoaYMOX0TqBlWhojUf8P94mvI7nuJTeaCkkds3QE4+zS8Ko+GdXuZtA==}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   '@unrs/resolver-binding-wasm32-wasi@1.11.1':
     resolution: {integrity: sha512-5u4RkfxJm+Ng7IWgkzi3qrFOvLvQYnPBmjmZQ8+szTK/b31fQCnleNl1GgEt7nIsZRIf5PLhPwT0WM+q45x/UQ==}
@@ -1245,10 +1214,6 @@ packages:
 
   color-name@1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
-
-  colyseus.js@0.16.22:
-    resolution: {integrity: sha512-xyiajukHvlwOtcziVbXZWmz7yBH3EImovYrGPAe2kVkdubLVYmOjskJuXh2VLlO8XGjyhmNwig9ELz18sTUo9g==}
-    engines: {node: '>= 12.x'}
 
   colyseus@0.17.8:
     resolution: {integrity: sha512-ISAN0BghWdddP5M6wvUF8HpKQMMThZeEO0H/8+YwJCwNtAvbl08wGYt+9+JIvdEvXSstbP10pQOKh47gRWizVw==}
@@ -2025,28 +1990,24 @@ packages:
     engines: {node: '>= 12.0.0'}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   lightningcss-linux-arm64-musl@1.30.2:
     resolution: {integrity: sha512-5Vh9dGeblpTxWHpOx8iauV02popZDsCYMPIgiuw97OJ5uaDsL86cnqSFs5LZkG3ghHoX5isLgWzMs+eD1YzrnA==}
     engines: {node: '>= 12.0.0'}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   lightningcss-linux-x64-gnu@1.30.2:
     resolution: {integrity: sha512-Cfd46gdmj1vQ+lR6VRTTadNHu6ALuw2pKR9lYq4FnhvgBc4zWY1EtZcAc6EffShbb1MFrIPfLDXD6Xprbnni4w==}
     engines: {node: '>= 12.0.0'}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   lightningcss-linux-x64-musl@1.30.2:
     resolution: {integrity: sha512-XJaLUUFXb6/QG2lGIW6aIk6jKdtjtcffUT0NKvIqhSBY3hh9Ch+1LCeH80dR9q9LBjG3ewbDjnumefsLsP6aiA==}
     engines: {node: '>= 12.0.0'}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   lightningcss-win32-arm64-msvc@1.30.2:
     resolution: {integrity: sha512-FZn+vaj7zLv//D/192WFFVA0RgHawIcHqLX9xuWiQt7P0PtdFEVaxgF9rjM/IRYHQXNnk61/H/gb2Ei+kUQ4xQ==}
@@ -2756,18 +2717,6 @@ packages:
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
 
-  ws@8.18.3:
-    resolution: {integrity: sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==}
-    engines: {node: '>=10.0.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: '>=5.0.2'
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
-
   ws@8.19.0:
     resolution: {integrity: sha512-blAT2mjOEIi0ZzruJfIhb3nps74PRWTCz1IjglWEEpQl5XS/UNama6u2/rjFkDDouqr4L67ry+1aGIALViWjDg==}
     engines: {node: '>=10.0.0'}
@@ -2909,7 +2858,7 @@ snapshots:
 
   '@colyseus/auth@0.17.8(@colyseus/core@0.17.36)(express@5.2.1)':
     dependencies:
-      '@colyseus/core': 0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
+      '@colyseus/core': 0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
       '@types/jsonwebtoken': 9.0.10
       connect-redis: 7.1.1(express-session@1.19.0)
       express: 5.2.1
@@ -2931,7 +2880,7 @@ snapshots:
 
   '@colyseus/clock@2.0.3': {}
 
-  '@colyseus/core@0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)':
+  '@colyseus/core@0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)':
     dependencies:
       '@colyseus/better-call': 1.3.1(zod@4.2.1)
       '@colyseus/greeting-banner': 3.0.8
@@ -2951,11 +2900,9 @@ snapshots:
 
   '@colyseus/greeting-banner@3.0.8': {}
 
-  '@colyseus/httpie@2.0.1': {}
-
-  '@colyseus/monitor@0.17.7(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(zod@4.2.1)':
+  '@colyseus/monitor@0.17.7(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(zod@4.2.1)':
     dependencies:
-      '@colyseus/core': 0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
+      '@colyseus/core': 0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
       express: 5.2.1
       node-os-utils: 2.0.1
     transitivePeerDependencies:
@@ -2974,13 +2921,13 @@ snapshots:
     dependencies:
       '@colyseus/auth': 0.17.8(@colyseus/core@0.17.36)(express@5.2.1)
       '@colyseus/better-call': 1.3.1(zod@4.2.1)
-      '@colyseus/core': 0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
+      '@colyseus/core': 0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
       express: 5.2.1
       zod: 4.2.1
 
-  '@colyseus/redis-driver@0.17.6(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)':
+  '@colyseus/redis-driver@0.17.6(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)':
     dependencies:
-      '@colyseus/core': 0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
+      '@colyseus/core': 0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
       ioredis: 5.9.3
     transitivePeerDependencies:
       - '@colyseus/better-call'
@@ -2991,9 +2938,9 @@ snapshots:
       - supports-color
       - zod
 
-  '@colyseus/redis-presence@0.17.6(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)':
+  '@colyseus/redis-presence@0.17.6(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)':
     dependencies:
-      '@colyseus/core': 0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
+      '@colyseus/core': 0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
       ioredis: 5.9.3
     transitivePeerDependencies:
       - '@colyseus/better-call'
@@ -3003,12 +2950,26 @@ snapshots:
       - express
       - supports-color
       - zod
-
-  '@colyseus/schema@3.0.76': {}
 
   '@colyseus/schema@4.0.19(typescript@5.9.3)':
     dependencies:
       typescript: 5.9.3
+
+  '@colyseus/sdk@0.17.43(@colyseus/core@0.17.36)(typescript@5.9.3)(zod@4.2.1)':
+    dependencies:
+      '@colyseus/better-call': 1.3.1(zod@4.2.1)
+      '@colyseus/msgpackr': 1.11.2
+      '@colyseus/schema': 4.0.19(typescript@5.9.3)
+      '@colyseus/shared-types': 0.17.6
+      tslib: 2.8.1
+      ws: 8.19.0
+    optionalDependencies:
+      '@colyseus/core': 0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
+    transitivePeerDependencies:
+      - bufferutil
+      - typescript
+      - utf-8-validate
+      - zod
 
   '@colyseus/shared-types@0.17.6':
     dependencies:
@@ -3018,9 +2979,9 @@ snapshots:
     dependencies:
       '@colyseus/clock': 2.0.3
 
-  '@colyseus/tools@0.17.19(@colyseus/core@0.17.36)(@colyseus/ws-transport@0.17.9)':
+  '@colyseus/tools@0.17.19(@colyseus/core@0.17.36)(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))':
     dependencies:
-      '@colyseus/core': 0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
+      '@colyseus/core': 0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
       '@colyseus/ws-transport': 0.17.9(@colyseus/core@0.17.36)(express@5.2.1)
       '@pm2/io': 6.1.0
       dotenv: 17.3.1
@@ -3029,12 +2990,12 @@ snapshots:
 
   '@colyseus/uwebsockets-transport@0.17.16(@colyseus/core@0.17.36)':
     dependencies:
-      '@colyseus/core': 0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
+      '@colyseus/core': 0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
       uWebSockets.js: https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/fcfc622a4286909593b7f390056d89e0ca3b56b9
 
   '@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1)':
     dependencies:
-      '@colyseus/core': 0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
+      '@colyseus/core': 0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
       '@types/ws': 8.18.1
       ws: 8.19.0
     optionalDependencies:
@@ -3902,27 +3863,16 @@ snapshots:
 
   color-name@1.1.4: {}
 
-  colyseus.js@0.16.22:
-    dependencies:
-      '@colyseus/httpie': 2.0.1
-      '@colyseus/msgpackr': 1.11.2
-      '@colyseus/schema': 3.0.76
-      tslib: 2.8.1
-      ws: 8.18.3
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-
-  colyseus@0.17.8(@colyseus/auth@0.17.8(@colyseus/core@0.17.36)(express@5.2.1))(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/core@0.17.36)(@colyseus/redis-driver@0.17.6(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1))(@colyseus/redis-presence@0.17.6(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/uwebsockets-transport@0.17.16(@colyseus/core@0.17.36))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1):
+  colyseus@0.17.8(@colyseus/auth@0.17.8(@colyseus/core@0.17.36)(express@5.2.1))(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/core@0.17.36)(@colyseus/redis-driver@0.17.6(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1))(@colyseus/redis-presence@0.17.6(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/uwebsockets-transport@0.17.16(@colyseus/core@0.17.36))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1):
     dependencies:
       '@colyseus/auth': 0.17.8(@colyseus/core@0.17.36)(express@5.2.1)
-      '@colyseus/core': 0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
-      '@colyseus/monitor': 0.17.7(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(zod@4.2.1)
+      '@colyseus/core': 0.17.36(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
+      '@colyseus/monitor': 0.17.7(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(zod@4.2.1)
       '@colyseus/playground': 0.17.10(@colyseus/auth@0.17.8(@colyseus/core@0.17.36)(express@5.2.1))(@colyseus/core@0.17.36)(express@5.2.1)(zod@4.2.1)
-      '@colyseus/redis-driver': 0.17.6(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
-      '@colyseus/redis-presence': 0.17.6(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
+      '@colyseus/redis-driver': 0.17.6(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
+      '@colyseus/redis-presence': 0.17.6(@colyseus/better-call@1.3.1(zod@4.2.1))(@colyseus/schema@4.0.19(typescript@5.9.3))(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))(@pm2/io@6.1.0)(express@5.2.1)(zod@4.2.1)
       '@colyseus/schema': 4.0.19(typescript@5.9.3)
-      '@colyseus/tools': 0.17.19(@colyseus/core@0.17.36)(@colyseus/ws-transport@0.17.9)
+      '@colyseus/tools': 0.17.19(@colyseus/core@0.17.36)(@colyseus/ws-transport@0.17.9(@colyseus/core@0.17.36)(express@5.2.1))
       '@colyseus/uwebsockets-transport': 0.17.16(@colyseus/core@0.17.36)
       '@colyseus/ws-transport': 0.17.9(@colyseus/core@0.17.36)(express@5.2.1)
     transitivePeerDependencies:
@@ -5747,8 +5697,6 @@ snapshots:
   word-wrap@1.2.5: {}
 
   wrappy@1.0.2: {}
-
-  ws@8.18.3: {}
 
   ws@8.19.0: {}
 
