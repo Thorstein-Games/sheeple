@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useColyseus, setPendingGameRoom } from "@/lib/colyseus/ColyseusProvider";
 import { joinOrCreateGameRoom, getRoomCode } from "@/lib/colyseus/RoomService";
 import styles from "./page.module.css";
+import { asset } from "@/lib/basePath";
 
 export default function Home() {
   const [playerNameInput, setPlayerNameInput] = useState("");
@@ -33,7 +34,7 @@ export default function Home() {
         <div className="text-center mb-12">
           <div className="flex justify-center mb-6">
             <img
-              src="/full_logo.png"
+              src={asset("/full_logo.png")}
               alt="Sheeple - Play Herd Mentality Online Free Multiplayer Party Game"
               className="h-64 w-auto"
             />
@@ -77,7 +78,7 @@ export default function Home() {
                 {Array.from({ length: 5 }).map((_, idx) => (
                   <img
                     key={idx}
-                    src="/sheep.png"
+                    src={asset("/sheep.png")}
                     alt="sheep"
                     className={`${styles.sheepPop} ${
                       styles[`sheepPop${idx + 1}`]

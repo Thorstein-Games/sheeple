@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, usePathname, useParams } from "next/navigation";
 import Link from "next/link";
 import { useColyseus, getCurrentRoomCode } from "@/lib/colyseus/ColyseusProvider";
+import { asset, roomUrl } from "@/lib/basePath";
 
 export function Navbar() {
   const { isConnected, playerName, setPlayerName } = useColyseus();
@@ -31,9 +32,9 @@ export function Navbar() {
   const handleCopyRoomCode = async () => {
     if (!navRoomCode || navRoomCode === "_") return;
 
-    const roomUrl = `${window.location.origin}/room/${navRoomCode}`;
+    const shareUrl = roomUrl(navRoomCode);
     try {
-      await navigator.clipboard.writeText(roomUrl);
+      await navigator.clipboard.writeText(shareUrl);
       setRoomCopied(true);
       setTimeout(() => {
         setRoomCopied(false);
@@ -69,7 +70,7 @@ export function Navbar() {
                 className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 p-2 rounded-lg transition-colors"
                 aria-label="Go back"
               >
-                <img src="/arrow-left.svg" alt="Back" className="h-5 w-5" />
+                <img src={asset("/arrow-left.svg")} alt="Back" className="h-5 w-5" />
               </button>
             )}
             {pathname.includes("/room") ? (
@@ -115,7 +116,7 @@ export function Navbar() {
           <div className="flex items-center justify-center absolute left-1/2 transform -translate-x-1/2">
             <Link href="/" aria-label="Home">
               <img
-                src="/sheeple.png"
+                src={asset("/sheeple.png")}
                 alt="Sheeple"
                 className="h-10 w-auto hover:opacity-80 transition-opacity"
               />

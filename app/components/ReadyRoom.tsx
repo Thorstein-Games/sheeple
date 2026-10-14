@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Room } from "@colyseus/sdk";
 import { MIN_PLAYERS, MAX_PLAYERS } from "@/lib/constants";
+import { roomUrl } from "@/lib/basePath";
 
 interface Player {
   playerId: string;
@@ -60,9 +61,9 @@ export default function ReadyRoom({
   };
 
   const handleCopyRoomUrl = async () => {
-    const roomUrl = `${window.location.origin}/room/${roomCode}`;
+    const shareUrl = roomUrl(roomCode);
     try {
-      await navigator.clipboard.writeText(roomUrl);
+      await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
