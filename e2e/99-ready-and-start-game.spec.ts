@@ -14,10 +14,6 @@ test("host readies up with dev bots and starts a round", async ({ page }) => {
     await page.getByRole("button", { name: "Join Test Room (5 Bots)" }).click();
 
     await page.waitForURL(/\/room\/[A-Z0-9]+$/);
-    // Work around the lobby hand-off state-sync bug (see fixtures.ts'
-    // createPublicRoom doc comment) — a reload forces a fresh client.join()
-    // that actually reflects the 5 bots added before hand-off.
-    await page.reload();
     await expect(page.getByText("Players in Room (6/12)")).toBeVisible();
 
     // Bots are pre-ready server-side; only the host needs to ready up.

@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is the Next.js (App Router) client for Sheeple, a real-time multiplayer party game. It connects over WebSocket to the `megingjord` Colyseus game server (separate repo) — it does **not** run its own game server logic. `server.ts` is just a custom Next.js HTTP server (used so dev/prod both run through one process); it has nothing to do with the game's realtime layer.
 
-Note: README.md is stale — it describes a Socket.IO setup that no longer exists. The actual realtime stack is Colyseus (`colyseus.js` client), as reflected in `lib/colyseus/`.
+Note: README.md is stale — it describes a Socket.IO setup that no longer exists. The actual realtime stack is Colyseus (`@colyseus/sdk` 0.17 client, matching megingjord's `@colyseus/core` 0.17), as reflected in `lib/colyseus/`.
 
 ## Commands
 
@@ -19,13 +19,15 @@ pnpm lint         # eslint
 pnpm typecheck    # tsc --noEmit
 ```
 
-There is no test runner configured in this repo.
+`pnpm test:e2e` runs the Playwright suite in `e2e/` against a real megingjord checked out at `../megingjord` (`playwright.config.ts` boots both). Specs run serially in filename order; `99-…` (bots) must stay last.
 
 ## Architecture
 
 **Server connection** ([lib/config/gameConfig.ts](lib/config/gameConfig.ts)): `getGameServerUrl()` picks the Colyseus server address — `ws://localhost:2567` in dev, `wss://megingjord.onrender.com` (or `GAME_SERVER_URL` env var) in production. Game tuning constants (`MAX_PLAYERS`, `ROUND_DURATION`, etc.) also live here.
 
-**Colyseus client wiring** ([lib/colyseus/ColyseusProvider.tsx](lib/colyseus/ColyseusProvider.tsx)): a React context (`ColyseusProvider`/`useColyseus`) holds the single `Colyseus.Client`, the active `room`, connection state, and a derived `players` list kept in sync via `room.state.players.onAdd/onRemove/onChange`. It also patches `consumeSeatReservation` to bridge a version mismatch — the server (`@colyseus/core@0.17`) returns a flat seat reservation shape, but the client lib (`colyseus.js@0.16`) expects the older nested `{ room: {...} }` shape. Don't "fix" that patch without checking both repos' Colyseus versions are still mismatched.
+**Colyseus client wiring** ([lib/colyseus/ColyseusProvider.tsx](lib/colyseus/ColyseusProvider.tsx)): a React context (`ColyseusProvider`/`useColyseus`) holds the single `Colyseus.Client`, the active `room`, connection state, and a derived `players` list.
+
+**Live state**: other players' joins, leaves, ready toggles, scores and host changes arrive as state patches. Re-read state in `room.onStateChange` (as `useGameRoom.ts`/`useSpectatorRoom.ts` do). Don't read `room.state` inside a broadcast message handler such as `player_joined`: the message arrives before the patch it describes. Schema v3+ has no `state.players.onAdd = ...` callbacks (use `getStateCallbacks` if you need per-item callbacks). SDK auto-reconnect is turned off because megingjord rejoins by name instead.
 
 Two persistent per-browser identifiers are generated client-side and sent with every join: `playerId` (localStorage, survives across tabs/sessions) and `tabId` (sessionStorage, per-tab) — used by the server to distinguish reconnects from genuinely new players across multiple tabs.
 

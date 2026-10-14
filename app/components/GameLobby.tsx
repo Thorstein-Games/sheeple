@@ -11,7 +11,7 @@ import {
 } from "@/lib/colyseus/RoomService";
 import { setPendingGameRoom } from "@/lib/colyseus/ColyseusProvider";
 import type { RoomInfo } from "@/shared/schema/RoomMetadata";
-import type { Room } from "colyseus.js";
+import type { Room } from "@colyseus/sdk";
 import Chat, { type ChatEntry } from "./Chat";
 
 const LOBBY_CHAT_LIMIT = 50;

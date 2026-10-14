@@ -28,19 +28,10 @@ export async function createPublicRoom(page: Page): Promise<string> {
 }
 
 /**
- * KNOWN BUG (see ColyseusProvider's `setPendingGameRoom`/`consumeSeatReservation`
- * patch, and CLAUDE.md's warning about that version-bridging shim): Colyseus
- * state *patches* never appear to apply on the client — `player_joined` etc.
- * still arrive as messages and get logged, but reading `state.players`
- * afterwards still reflects the snapshot from whenever this connection was
- * established, not any later join/leave/ready/score change. Only the full
- * snapshot fetched at join (or reload) time is ever accurate. So: reload a
- * page immediately before asserting on anything driven by a *different*
- * client's action. This works around it for tests; the underlying bug means
- * real players currently don't see each other's actions live either, without
- * a refresh, and is worth a real fix outside this test-writing task.
+ * Reload the room page and wait for it to come back. Other players' actions
+ * show up live, so only use this to test a reload itself (rejoin by name).
  */
-export async function refreshRoomState(page: Page): Promise<void> {
+export async function reloadRoom(page: Page): Promise<void> {
   await page.reload();
   await page.getByText("Waiting for Players...").waitFor();
 }

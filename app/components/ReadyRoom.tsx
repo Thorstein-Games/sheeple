@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Room } from "colyseus.js";
+import type { Room } from "@colyseus/sdk";
 import { MIN_PLAYERS, MAX_PLAYERS } from "@/lib/constants";
 
 interface Player {
