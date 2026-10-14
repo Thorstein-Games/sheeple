@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import "./BackgroundGrazers.css";
+import { asset } from "@/lib/basePath";
 
 function generateGrazers() {
   const count = Math.floor(Math.random() * 4) + 3;
@@ -57,7 +58,7 @@ export function BackgroundGrazers() {
       {grazers.map((grazer) => (
         <img
           key={grazer.id}
-          src={`/${grazer.gif}`}
+          src={asset(`/${grazer.gif}`)}
           alt=""
           className="grazer"
           style={{
