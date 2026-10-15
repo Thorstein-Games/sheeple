@@ -1,5 +1,5 @@
-# One static export built for the /sheeple base path (served at
-# thorsteingames.com/sheeple); see scripts/build-netlify.mjs.
+# Netlify no longer hosts Sheeple; it only redirects old sheeple-game.com links
+# to thorsteingames.com/sheeple (see netlify/_redirects). Nothing to build.
 [build]
-  command = "pnpm build:netlify"
-  publish = "out"
+  command = "echo 'redirect-only site'"
+  publish = "netlify"
