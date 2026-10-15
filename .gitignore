@@ -46,4 +46,3 @@ next-env.d.ts
 # AI tooling
 .agents/
 skills-lock.json
-/out-sheeple/

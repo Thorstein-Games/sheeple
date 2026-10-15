@@ -1,7 +1,7 @@
 /**
  * The sub-path the site is served from: "/sheeple" in the deployed build
  * (thorsteingames.com/sheeple), "" in dev and e2e. Set at build time via
- * NEXT_PUBLIC_BASE_PATH; see next.config.ts and scripts/build-netlify.mjs.
+ * NEXT_PUBLIC_BASE_PATH; see next.config.ts and .github/workflows/deploy-pages.yml.
  *
  * next/link and router.push add it automatically. Raw asset paths (<img>,
  * CSS url()), share URLs and window.location parsing must go through here.

@@ -1,0 +1,5 @@
+# sheeple-game.com is retired: Sheeple lives at thorsteingames.com/sheeple
+# (deployed to GitHub Pages, see .github/workflows/deploy-pages.yml). This
+# Netlify site only redirects old links there, room links included.
+/sheeple/*  https://thorsteingames.com/sheeple/:splat  301!
+/*          https://thorsteingames.com/sheeple/:splat  301!

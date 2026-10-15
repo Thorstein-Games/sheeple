@@ -6,7 +6,6 @@
     "predev": "lsof -ti:3000,3001 2>/dev/null | xargs kill -9 2>/dev/null || true",
     "dev": "next dev",
     "build": "next build",
-    "build:netlify": "node scripts/build-netlify.mjs",
     "buildev": "pnpm build && pnpm dev",
     "preview": "npx serve out",
     "cleanup": "lsof -ti:3000,3001 2>/dev/null | xargs kill -9 2>/dev/null || echo 'No processes to kill'",
