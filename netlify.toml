@@ -1,5 +1,10 @@
 # Netlify no longer hosts Sheeple; it only redirects old sheeple-game.com links
-# to thorsteingames.com/sheeple (see netlify/_redirects). Nothing to build.
+# to thorsteingames.com/sheeple (see redirect-only/_redirects). Nothing to build.
 [build]
   command = "echo 'redirect-only site'"
-  publish = "netlify"
+  publish = "redirect-only"
+
+[build.environment]
+  # Netlify would otherwise run its Next.js plugin, which fails without a
+  # Next.js build.
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
