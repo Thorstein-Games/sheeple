@@ -1,0 +1,58 @@
+name: Deploy to GitHub Pages
+
+# Builds the static site and publishes it to GitHub Pages
+# (thorstein-games.github.io/sheeple), which thorsteingames.com/sheeple
+# proxies to. Run it by hand from the Actions tab too.
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # Only from the Thorstein-Games/sheeple repo (its Pages site is what
+    # thorsteingames.com/sheeple proxies to).
+    if: github.repository == 'Thorstein-Games/sheeple'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Where Pages serves the site: "/sheeple" for the Thorstein-Games/sheeple
+      # repo. thorsteingames.com proxies /sheeple there, so the repo name must
+      # stay `sheeple`.
+      - id: pages
+        uses: actions/configure-pages@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+        env:
+          NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          # Optional repo variable; defaults to wss://megingjord.onrender.com
+          NEXT_PUBLIC_GAME_SERVER_URL: ${{ vars.GAME_SERVER_URL }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

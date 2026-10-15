@@ -1,9 +1,9 @@
 import RoomPageClient from "./RoomPageClient";
 
 export async function generateStaticParams() {
-  // Generate a shell page used as a static fallback for all room codes.
-  // Netlify rewrites /room/* to this shell; Next.js client router reads
-  // the actual room code from the URL after hydration.
+  // A shell page so the route exists in the static export. Real room links
+  // reach the room through app/not-found.tsx (GitHub Pages serves 404.html
+  // for them); the client reads the actual room code from the URL.
   return [{ roomCode: "_" }];
 }
 

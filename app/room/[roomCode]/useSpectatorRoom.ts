@@ -80,7 +80,9 @@ export function useSpectatorRoom(
   };
 
   useEffect(() => {
-    if (!client || !roomCode || room || joiningRef.current) return;
+    // "_" is the prerendered placeholder until the real code is read from the
+    // URL. Joining it fails, and would block the real join while in flight.
+    if (!client || !roomCode || roomCode === "_" || room || joiningRef.current) return;
     joiningRef.current = true;
 
     const join = async () => {
