@@ -1,16 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import { useRouter, usePathname, useParams } from "next/navigation";
 import Link from "next/link";
 import { useColyseus, getCurrentRoomCode } from "@/lib/colyseus/ColyseusProvider";
 import { asset, roomUrl } from "@/lib/basePath";
 
+const noSubscription = () => () => {};
+
 export function Navbar() {
   const { isConnected, playerName, setPlayerName } = useColyseus();
   const router = useRouter();
   const params = useParams();
-  const pathname = usePathname();
+  const routerPathname = usePathname();
+  // Room links are served by the 404 page (GitHub Pages has no rewrites),
+  // which is prerendered without knowing the URL. Render room paths as a
+  // plain page until hydrated so the markup matches, then show the room bar.
+  const hydrated = useSyncExternalStore(noSubscription, () => true, () => false);
+  const pathname = hydrated || !routerPathname.startsWith("/room") ? routerPathname : "/_room";
   // useParams() returns "_" (pre-rendered shell) in static export. Use
   // window.location to get the actual room code after hydration.
   const [navRoomCode, setNavRoomCode] = useState("_");
