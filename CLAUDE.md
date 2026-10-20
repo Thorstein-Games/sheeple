@@ -39,6 +39,14 @@ Two persistent per-browser identifiers are generated client-side and sent with e
 
 **Game UI flow**: `app/lobby` (room browser/creation) → `app/room/[roomId]` (the live game, driven by `useGameRoom.ts` which subscribes to room state) using components in `app/components/` (`GameLobby`, `ReadyRoom`, `RoundPlay`, `RoundResults`, `RoundTransition`, `GameEndScreen`, `Chat`, `CountdownTimer`, etc. — these map fairly directly to the game phases defined server-side).
 
+## Shared Thorstein Games bar and footer
+
+`app/layout.tsx` loads `https://thorsteingames.com/tg-bar.js` (served by the thorstein-games-website repo, whose CLAUDE.md has the full contract) and renders `<tg-bar game="sheeple">` (thin site header above `Navbar`, hides while scrolling down) and `<tg-footer game="sheeple">` (replaces the old footer; its children are Sheeple's own links). `GameEndScreen` shows `<tg-more-games game="sheeple">` ("Play a different game"). JSX types for the tags are in `tg-elements.d.ts`.
+
+- The bar is always 40px; `globals.css` holds that space before the script loads (`tg-bar:not(:defined)`). Pages are `min-h-screen` under the bar and navbar, so the footer starts below the fold.
+- `NEXT_PUBLIC_TG_BAR_SRC` overrides the script URL; `playwright.config.ts` sets it to `""` so tests never load it from production.
+- Links inside the elements open in a new tab, so they never pull a player out of a room.
+
 ## Cross-repo notes
 
 This client and the `megingjord` server are developed together. When changing message names, payload shapes, or schema fields, check both repos — see `megingjord`'s [API.md](../megingjord/API.md) and [GAME_INTEGRATION.md](../megingjord/GAME_INTEGRATION.md) for the server-side contract. [GAME_INTEGRATION.md](GAME_INTEGRATION.md) and [SHEEPLE_GAME_LOGIC.md](SHEEPLE_GAME_LOGIC.md) in this repo are copies of the same docs from the server repo.

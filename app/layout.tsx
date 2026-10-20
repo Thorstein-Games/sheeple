@@ -4,7 +4,7 @@ import { Toaster } from "sonner";
 import "./globals.css";
 import { ColyseusProvider } from "@/lib/colyseus/ColyseusProvider";
 import { Navbar } from "./components/Navbar";
-import { Footer } from "./components/Footer";
+import Link from "next/link";
 import { asset } from "@/lib/basePath";
 import { SITE_URL } from "@/lib/site";
 
@@ -75,6 +75,11 @@ export const metadata: Metadata = {
     "google-adsense-account": "ca-pub-9555350395401499",
   },
 };
+
+// Shared Thorstein Games bar and footer (see CLAUDE.md). The Playwright
+// config sets this to "" so tests don't load it from production.
+const TG_BAR_SRC =
+  process.env.NEXT_PUBLIC_TG_BAR_SRC ?? "https://thorsteingames.com/tg-bar.js";
 
 export default function RootLayout({
   children,
@@ -157,10 +162,16 @@ export default function RootLayout({
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
+        {TG_BAR_SRC && <script src={TG_BAR_SRC} async />}
+        <tg-bar game="sheeple"></tg-bar>
         <ColyseusProvider>
           <Navbar />
           <main className="flex-1">{children}</main>
-          <Footer />
+          <tg-footer game="sheeple">
+            <Link href="/">Home</Link>
+            <Link href="/how-to-play">How to Play</Link>
+            <Link href="/faq">FAQ</Link>
+          </tg-footer>
         </ColyseusProvider>
         <Toaster position="top-center" richColors />
       </body>

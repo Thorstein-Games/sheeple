@@ -23,6 +23,8 @@ export default defineConfig({
     {
       command: "pnpm dev",
       url: "http://localhost:3000",
+      // Don't load the shared Thorstein Games bar from production in tests.
+      env: { NEXT_PUBLIC_TG_BAR_SRC: "" },
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
     },

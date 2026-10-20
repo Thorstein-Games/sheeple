@@ -99,6 +99,11 @@ export default function GameEndScreen({
       >
         Ready for Next Game
       </button>
+
+      <tg-more-games
+        game="sheeple"
+        className="block mt-8 pt-6 border-t border-gray-200 text-gray-700"
+      ></tg-more-games>
     </div>
   );
 }
