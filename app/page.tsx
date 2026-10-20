@@ -40,7 +40,7 @@ export default function Home() {
             />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Play Herd Mentality Online, Free
+            Sheeple: The Herd Mentality Game Online
           </h1>
           <p className="text-xl text-gray-600">
             Sheeple is the herd mentality game for your browser. Answer like

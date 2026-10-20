@@ -11,7 +11,7 @@ import { SITE_URL } from "@/lib/site";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Play Herd Mentality Online Free | Sheeple Party Game",
+    default: "Sheeple: Play Herd Mentality Online Free",
     template: "%s | Sheeple",
   },
   description:
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: SITE_URL,
     siteName: "Sheeple Game",
-    title: "Play Herd Mentality Online Free | Sheeple",
+    title: "Sheeple: Play Herd Mentality Online Free",
     description:
       "A free Herd Mentality style party game for 3-12 players. Answer like the herd to score. Play in the browser, no downloads.",
     images: [
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Play Herd Mentality Online Free | Sheeple",
+    title: "Sheeple: Play Herd Mentality Online Free",
     description:
       "A free Herd Mentality style party game for 3-12 players, right in the browser.",
     images: [`${SITE_URL}/full_logo.png`],
