@@ -3,19 +3,19 @@ import Link from "next/link";
 import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "FAQ - Frequently Asked Questions | Sheeple Party Game",
+  title: "FAQ: Playing Herd Mentality Online",
   description:
-    "Common questions about playing Sheeple online. Learn about game rules, setup, player limits, and how to play this group thinking party game with friends.",
+    "Can you play Herd Mentality online? Answers about Sheeple, the free herd mentality game for the browser: rules, player counts, phones, and playing with friends far away.",
   keywords: [
+    "can you play herd mentality online",
+    "herd mentality online faq",
     "sheeple faq",
-    "sheeple game questions",
     "online party game help",
-    "group thinking game faq",
   ],
   openGraph: {
-    title: "Sheeple FAQ - Online Party Game Questions",
+    title: "Sheeple FAQ: Playing Herd Mentality Online",
     description:
-      "Get answers to common questions about playing Sheeple online",
+      "Answers to common questions about playing Sheeple, a free herd mentality game, online with friends",
     type: "article",
   },
   alternates: {
@@ -29,6 +29,16 @@ export default function FAQ() {
       question: "How do I play Sheeple online?",
       answer:
         "Playing Sheeple is simple! Just enter your name on the homepage, create or join a room, and share the room code with friends. Once everyone joins, the game starts automatically. Answer questions trying to match what others will say - the most popular answer wins!",
+    },
+    {
+      question: "Can you play Herd Mentality online?",
+      answer:
+        "Yes. Sheeple is a free herd mentality game that runs in your browser. Everyone gets the same question, answers on their own device, and scores by matching the most popular answer, just like the board game. Create a room, share the link, and play with friends wherever they are.",
+    },
+    {
+      question: "Is Sheeple the same as Herd Mentality?",
+      answer:
+        "Sheeple is an independent game inspired by Herd Mentality, the party game by Big Potato Games. It isn't affiliated with Big Potato, and it uses its own questions and scoring, but the idea is the same: the answer that matches the herd wins.",
     },
     {
       question: "Is Sheeple free to play?",
@@ -56,14 +66,9 @@ export default function FAQ() {
         "A typical game lasts 10-20 minutes, depending on the number of rounds and players. You can customize the game length when creating a room.",
     },
     {
-      question: "Is Sheeple inspired by other party games?",
-      answer:
-        "Sheeple is inspired by popular group thinking and question matching party games. We've created an online version that makes it easy to play with friends anywhere in the world. The core gameplay - thinking like the herd to match answers - is designed for maximum fun!",
-    },
-    {
       question: "Can I play with friends in different locations?",
       answer:
-        "Yes! That's one of the best features of playing Herd Mentality online. Share your room code with friends anywhere, and they can join instantly.",
+        "Yes! That's one of the best things about playing a herd mentality game online. Share your room code with friends anywhere, and they can join instantly.",
     },
     {
       question: "Is there a chat feature?",
@@ -91,12 +96,17 @@ export default function FAQ() {
         </header>
 
         {/* FAQ Items */}
-        <section className="space-y-6">
+        <section
+          className="space-y-6"
+          itemScope
+          itemType="https://schema.org/FAQPage"
+        >
           {faqs.map((faq, index) => (
             <div
               key={index}
               className="bg-white rounded-2xl shadow-xl p-8"
               itemScope
+              itemProp="mainEntity"
               itemType="https://schema.org/Question"
             >
               <h2

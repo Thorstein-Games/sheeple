@@ -11,22 +11,23 @@ import { SITE_URL } from "@/lib/site";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Sheeple - Online Party Game | Play Herd Mentality Online",
-    template: "%s | Sheeple Game",
+    default: "Sheeple: Play Herd Mentality Online Free",
+    template: "%s | Sheeple",
   },
   description:
-    "Play Sheeple online free! A multiplayer party game where you think like the herd. Answer questions and match with the group to win. 3-12 players, no downloads required. Inspired by popular group thinking games.",
+    "Sheeple is a free Herd Mentality game you can play online with friends. Everyone answers the same question and tries to match the herd. 3-12 players, in the browser, no downloads or sign-up.",
   keywords: [
+    "herd mentality online",
+    "play herd mentality online",
+    "herd mentality game",
+    "herd mentality game online free",
+    "online herd mentality",
+    "games like herd mentality",
     "sheeple game",
-    "online party game",
-    "multiplayer party game",
     "think like the herd",
-    "group thinking game",
-    "free online party game",
-    "herd mentality style game",
-    "question matching game",
-    "virtual party game",
-    "play with friends online",
+    "online party game",
+    "free multiplayer party game",
+    "party game to play with friends online",
   ],
   authors: [{ name: "Sheeple Game" }],
   creator: "Sheeple Game",
@@ -47,9 +48,9 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: SITE_URL,
     siteName: "Sheeple Game",
-    title: "Sheeple - Think Like the Herd | Free Online Party Game",
+    title: "Sheeple: Play Herd Mentality Online Free",
     description:
-      "Play Sheeple online free! A group thinking party game where matching with the herd wins. 3-12 players, instant play, no downloads!",
+      "A free Herd Mentality style party game for 3-12 players. Answer like the herd to score. Play in the browser, no downloads.",
     images: [
       {
         // og-image.png never existed; the full logo is the closest fit.
@@ -62,9 +63,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Sheeple - Think Like the Herd Online",
+    title: "Sheeple: Play Herd Mentality Online Free",
     description:
-      "Play Sheeple online free! Group thinking party game for 3-12 players.",
+      "A free Herd Mentality style party game for 3-12 players, right in the browser.",
     images: [`${SITE_URL}/full_logo.png`],
     creator: "@sheeplegame",
   },
@@ -116,21 +117,22 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebApplication",
-              name: "Sheeple - Group Thinking Party Game",
+              name: "Sheeple",
+              alternateName: [
+                "Sheeple - Herd Mentality Online",
+                "Herd Mentality game online",
+              ],
               description:
-                "Play Sheeple online free! A multiplayer party game where you think like the herd to win. Answer questions and match with the group.",
+                "A free online party game like Herd Mentality: everyone answers the same question and scores by matching the most popular answer. 3-12 players, in the browser.",
               url: SITE_URL,
-              applicationCategory: "Game",
+              applicationCategory: "GameApplication",
+              genre: "Party game",
               operatingSystem: "Web Browser",
+              isAccessibleForFree: true,
               offers: {
                 "@type": "Offer",
                 price: "0",
                 priceCurrency: "USD",
-              },
-              aggregateRating: {
-                "@type": "AggregateRating",
-                ratingValue: "4.8",
-                ratingCount: "1247",
               },
               gameItem: {
                 "@type": "Game",
