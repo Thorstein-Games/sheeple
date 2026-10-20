@@ -35,16 +35,17 @@ export default function Home() {
           <div className="flex justify-center mb-6">
             <img
               src={asset("/full_logo.png")}
-              alt="Sheeple - Play Herd Mentality Online Free Multiplayer Party Game"
+              alt="Sheeple, a free Herd Mentality style party game you play online"
               className="h-64 w-auto"
             />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Play Sheeple Online - Free Multiplayer Party Game
+            Play Herd Mentality Online, Free
           </h1>
           <p className="text-xl text-gray-600">
-            Think like the herd and win! Answer questions, match with the group,
-            play with 3-12 friends - no downloads required
+            Sheeple is the herd mentality game for your browser. Answer like
+            the herd, match the group and win. 3-12 friends, no downloads, no
+            sign-up.
           </p>
         </div>
 
@@ -132,8 +133,8 @@ export default function Home() {
             How to Play Sheeple
           </h2>
           <p className="text-center text-gray-600 mb-6">
-            A group thinking party game inspired by popular herd mentality
-            games. Play with friends anywhere!
+            Sheeple plays like the Herd Mentality board game, online. Play
+            with friends anywhere!
           </p>
           <div className="space-y-6">
             <div className="flex gap-4">
@@ -209,6 +210,35 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Herd Mentality online section */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <h2 className="text-2xl font-bold mb-4 text-center">
+            A Herd Mentality Game You Can Play Online
+          </h2>
+          <div className="space-y-4 text-gray-700">
+            <p>
+              Love herd mentality games but can&apos;t get everyone around one
+              table? Sheeple brings the same idea online: everyone gets the
+              same question, writes an answer on their own phone or computer,
+              and scores a point for matching the most popular answer. Think
+              like the herd, not like yourself.
+            </p>
+            <p>
+              Create a room, send your friends the link, and you&apos;re
+              playing in under a minute. It works on video calls, in the same
+              room on everyone&apos;s phones, or with friends on the other side
+              of the world. No cards, no box, no app to install, and it&apos;s
+              free.
+            </p>
+            <p>
+              Looking for games like Herd Mentality to play online? Sheeple is
+              built for exactly that: quick rounds, big groups and plenty of
+              arguing about whether &quot;pizza&quot; and &quot;pepperoni
+              pizza&quot; count as the same answer.
+            </p>
+          </div>
+        </div>
+
         {/* Why Play Section */}
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl shadow-xl p-8">
           <h2 className="text-2xl font-bold mb-6 text-center">
@@ -244,9 +274,10 @@ export default function Home() {
         {/* Legal Disclaimer */}
         <div className="mt-8 text-center">
           <p className="text-xs text-gray-500 leading-relaxed">
-            Sheeple is an independent, fan-made party game inspired by classic
-            word and deduction games. It is not affiliated with or endorsed by
-            any other company or product. All original artwork, code, and assets
+            Sheeple is an independent, fan-made party game inspired by herd
+            mentality style games. Herd Mentality is a trademark of Big Potato
+            Games; Sheeple is not affiliated with or endorsed by Big Potato
+            Games or any other company or product. All original artwork, code, and assets
             are the property of their respective creators. By playing Sheeple,
             you agree to the use of cookies and advertisements, which are
             required to play the game. We use cookies to maintain your session

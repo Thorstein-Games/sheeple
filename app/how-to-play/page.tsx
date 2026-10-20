@@ -3,10 +3,12 @@ import Link from "next/link";
 import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "How to Play Sheeple - Online Party Game Rules & Instructions",
+  title: { absolute: "How to Play Herd Mentality Online | Sheeple Rules" },
   description:
-    "Learn how to play Sheeple online! Complete rules, scoring system, and game modes for 3-12 players. A group thinking party game inspired by herd mentality games. Free, no downloads required.",
+    "How to play Sheeple, the free herd mentality game online: rules, scoring and game modes for 3-12 players. Match the herd to win. No downloads required.",
   keywords: [
+    "how to play herd mentality online",
+    "herd mentality rules",
     "sheeple rules",
     "how to play sheeple",
     "group thinking game",
@@ -49,8 +51,9 @@ export default function HowToPlay() {
           <p className="text-lg text-gray-700 mb-4">
             Sheeple is a multiplayer party game where players answer questions
             trying to match what everyone else thinks. The more you think like
-            the herd, the more points you score! Perfect for fans of group
-            thinking and question matching games.
+            the herd, the more points you score! If you know the Herd
+            Mentality board game, you already know how to play: this is a herd
+            mentality game you can play online.
           </p>
           <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
             <p className="text-gray-800">
