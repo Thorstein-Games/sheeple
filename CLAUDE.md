@@ -46,6 +46,7 @@ Two persistent per-browser identifiers are generated client-side and sent with e
 - The bar is always 40px; `globals.css` holds that space before the script loads (`tg-bar:not(:defined)`). Pages are `min-h-screen` under the bar and navbar, so the footer starts below the fold.
 - `NEXT_PUBLIC_TG_BAR_SRC` overrides the script URL; `playwright.config.ts` sets it to `""` so tests never load it from production.
 - Links inside the elements open in a new tab, so they never pull a player out of a room.
+- Ads (`<tg-ad>`, rules and options in the thorstein-games-website CLAUDE.md): a `banner` above the footer in `layout.tsx`, and a `box` at the bottom of `RoundResults` (between rounds) and `GameEndScreen`. Never during a round. `tg-bar.js` loads AdSense itself when a slot fills, so don't add the AdSense script to the page (Auto ads would put ads over the game). Check placements with `?tgads=preview`.
 
 ## Cross-repo notes
 

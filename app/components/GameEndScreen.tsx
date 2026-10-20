@@ -104,6 +104,7 @@ export default function GameEndScreen({
         game="sheeple"
         className="block mt-8 pt-6 border-t border-gray-200 text-gray-700"
       ></tg-more-games>
+      <tg-ad game="sheeple" format="box" className="block mt-8"></tg-ad>
     </div>
   );
 }

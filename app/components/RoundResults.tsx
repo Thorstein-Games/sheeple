@@ -111,6 +111,8 @@ export default function RoundResults({
           )}
         </div>
       )}
+
+      <tg-ad game="sheeple" format="box" className="block mt-8"></tg-ad>
     </div>
   );
 }

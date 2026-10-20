@@ -157,16 +157,12 @@ export default function RootLayout({
             gtag('config', 'G-HE8WYT78H8');
           `}
         </Script>
-        <Script
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9555350395401499"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
         {TG_BAR_SRC && <script src={TG_BAR_SRC} async />}
         <tg-bar game="sheeple"></tg-bar>
         <ColyseusProvider>
           <Navbar />
           <main className="flex-1">{children}</main>
+          <tg-ad game="sheeple" format="banner" className="block py-6"></tg-ad>
           <tg-footer game="sheeple">
             <Link href="/">Home</Link>
             <Link href="/how-to-play">How to Play</Link>
